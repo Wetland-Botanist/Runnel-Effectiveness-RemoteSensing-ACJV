@@ -1880,7 +1880,7 @@ rm(Veg.Change.Model.anova, Veg.Change.Model.anova, Veg.Change.Model.glance, Veg.
 
 Timeline.Runnel <- Database %>%
   filter(Treatment == "Runnel") %>%
-    group_by(Site, Runnel_Install, Timeline) %>%
+    group_by(State, Runnel_Install, Timeline, State) %>%
       summarise(
         UVVR.m = sum(UVVR, na.rm = TRUE),
         UVVR.se = sd(UVVR, na.rm = TRUE)/sqrt(n()),
@@ -1966,10 +1966,10 @@ Veg.Runnel.Graph
 
 
 
-#Page 2- Create a timeline of runnel treatments for each site over the restoration timeframe for
+#Page 2- Create a timeline of runnel treatments for each site over the restoration time frame for
   #UVVR scores with UVVR scores > 1.5 and graph
 
-#Step 1 - Create the timeline of runnel treatments of the restoration timeframe with tidesheds averaged
+#Step 1 - Create the timeline of runnel treatments of the restoration time frame with tidesheds averaged
 #for similar runnel install dates within each site
 
 
@@ -2041,7 +2041,8 @@ UVVR.Runnel.Graph
 
 
 Timeline.Runnel <- Database %>%
-  filter(Treatment == "Runnel") %>%
+  mutate(Site_Tideshed = paste(Site, Tideshed, sep = " - ")) %>%
+  filter(Treatment == "Runnel", State == "RI") %>%
     filter(Site != "Plum Island" & Site != "Potters Pond" & Site != "Weekapaug Foundation" & Site != "Winnapaug Town Land")
 
 
@@ -2049,14 +2050,14 @@ Timeline.Runnel <- Database %>%
 #Step 2 -  UVVR Graph for the Tidesheds Individually shown with UVVR scores > 1.5
 
 
-Timeline.Runnel$Tideshed <- as.character(Timeline.Runnel$Tideshed)
+Timeline.Runnel$Tideshed_ID <- as.character(Timeline.Runnel$Tideshed_ID)
 
 
 UVVR.Runnel.Graph <- ggplot() +   
   geom_vline(xintercept = 0, size = 1, colour = "grey", 
              linetype = "dashed") + 
   geom_point(data = Timeline.Runnel,
-             aes(x = Timeline, y = UVVR, fill = Tideshed), 
+             aes(x = Timeline, y = UVVR, fill = Site), 
              shape = 21, size = 5, position = 'jitter') +
   labs(x = "Age Relative to Restoration (yrs)", 
        y = "Average UVVR Score") + 
@@ -2072,7 +2073,7 @@ UVVR.Runnel.Graph <- ggplot() +
     axis.title = element_text(size = 15, colour = "black"),
     axis.text = element_text(size = 15, colour = "black"),
     strip.text = element_text(size = 16, colour = "black")) +
-  facet_wrap(~Site, ncol = 4)
+  facet_wrap(~Site_Tideshed)
 
 
 UVVR.Runnel.Graph
@@ -2080,10 +2081,10 @@ UVVR.Runnel.Graph
 
 
 
-#Page 4 - Create a timeline of runnel treatments for each site over the restoration timeframe for
-  #UVVR scores with UVVR scores > 1.5 and graph with tidesheds indivudally shown
+#Page 4 - Create a timeline of runnel treatments for each site over the restoration time frame for
+  #UVVR scores with UVVR scores > 1.5 and graph with tidesheds individually shown
 
-#Step 1 - Create the timeline of runnel treatments of the restoration timeframe with tidesheds 
+#Step 1 - Create the timeline of runnel treatments of the restoration time frame with tidesheds 
   # individually for similar runnel install dates within each site
 
 
