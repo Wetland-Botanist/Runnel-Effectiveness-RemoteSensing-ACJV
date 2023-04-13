@@ -1158,10 +1158,10 @@ rm(Veg.Linear.glance, Veg.Linear.tidy, Veg.Linear.anova)
 #Page 3 - Predict the Linear Model for each Treatment
 
 #Using the ggpredict() function, the mean value and confidence interval can be calculated for each
-#treatment at each timeline point. ggpredict() function is a powerful tool!
+  #treatment at each timeline point. ggpredict() function is a powerful tool!
 #For visualization purposes, the confidence interval was calculated for the variance of the fixed effects,
-#while keeping the random effects constant. Essentially, the confidence interval becomes incredibly large
-#and not useful for visualization purposes
+  #while keeping the random effects constant. Essentially, the confidence interval becomes incredibly large
+  #and not useful for visualization purposes
 
 
 Linear.preds <- ggpredict(Veg.Linear, c("Timeline", "Treatment"), 
@@ -1174,6 +1174,7 @@ Linear.preds <- ggpredict(Veg.Linear, c("Timeline", "Treatment"),
 
 
 #Page 4 - Calculate the Slope of Linear Mixed Model with predicted values
+
 #Using the predicted mean values, the slopes of each treatment can be calculated
 
 Linear.Slope <- Linear.preds %>%
@@ -1188,6 +1189,7 @@ write.csv(Linear.Slope, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_M
 
 
 #Page 5 - Graph the predicted linear mixed model for each treatment via the facet wrap function
+
 #There are two data sets being graphed: Predicted values of mixed model and the mean values (with error bars) 
 #The treatments are graphed in the following order: No Action, Reference, Ditch, and Runnel 
 #These corresponds with basic R colors that correspond well with each treatment
@@ -1265,10 +1267,28 @@ ggsave(Linear.Graph, height = 12, width = 16, dpi = 600,
 
 #CHAPTER 2: Vegetated Area - SPLINE REGRESSIONS
 
+# To complete a spline regression, we need to define the "knots" of the time/location on the 
+#x-axis where the regression shifts
+# For this analysis, the Knot will be placed at Time = 0 yrs relative to Runnel Construction Date, 
+# since we are curious about the shift in the slope pre- and post-restoration
 
+#The full model will be a mixed spline model. #Mixed model is created with the lmer() function and the outputs of the mixed model are recorded with
+#various broom.mixed package functions. Broom.mixed converts complex lme4 outputs to tables
+#For the mixed model, UVVR is the response variable, Timeline and Treatment are fixed effects,
+#and Site and Tideshed_ID are random effects. 
+#Note: Individual tidesheds are uniquely ID'ed, rendering a nesting structure for the data obsolete
 
 
 # Page 1 - Create the Splines Model with the Splines Package and bs() function
+
+#The bs() function allows us to designate the knot locations for the spline model
+#Later on in the code, we will individually create a Spline Model for each management treatment,
+#but for now, this is a simple and quick way to calculate the ANOVA table for the regressions
+#Spline regressions are completed with raw data (e.g., all tidesheds, not means)
+#The statistical terms are rounded to 4 digits
+#Lastly, the slope of each segment is calculated. The slope of the second segment is calculated as summation of 
+#the estimates of each segment. First estimate = Slope of segment 1, Second estimate = change in slope
+
 
 
 Veg.Spline <- lmer(Veg_Percent ~ bs(Timeline, knots = 0, degree = 1) * Treatment + (1|Site) + (1|Tideshed_ID),
@@ -1428,7 +1448,7 @@ rm(Spline.Graph, Spline.Graph.UVVR, Spline.Graph.Veg, Spline.preds, Spline.Slope
 
 #___________________________________________________________________________________________________________
 
-#Chapter 4: Spline Mixed Model on Baseline Condition for Vegetated Area
+#Chapter 3: Spline Mixed Model on Baseline Condition for Vegetated Area
 
 #After review of the data, it seemed there was a complete divergence between the No Action Control and Runnel
   #tidesheds when analyzed between Healthy (UVVR < 0.13) and Degraded ( UVVR > 0.13) tideshed areas prior
@@ -1620,7 +1640,7 @@ rm(Spline.Graph, Spline.Graph.UVVR, Spline.Graph.Veg, Spline.preds, Spline.Slope
 
 #_________________________________________________________________________________________________________________________________
 
-#CHAPTER 3: Vegetated Area - Univariate Statistics (ANOVA, Least Likelihood Ratio Test, etc.)
+#CHAPTER 4: Vegetated Area - Univariate Statistics (ANOVA, Least Likelihood Ratio Test, etc.)
 
 
 #Page 1 - Model Comparison: Compare Linear and Spline models to defend use of Spline
@@ -1705,43 +1725,6 @@ rm(PreRestoration.Graph, PreRestoration.UVVR.Graph, PreRestoration.Veg.Graph,
 #_____________________________________________________________________________________________________________
 
 
-#Chapter 5: Data Exploration of Healthy and Degraded Condition Impact on Vegetation Recovery
-
-#One of the things I was super curious about was the high variability between years in the 
-  # recovery of vegetation of the runnel tidesheds. I understand that different sites are represented
-  # in different years (alternating sites and years based on 2 year NAIP schedule)
-#However, after conducting the rate of vegetation gain based on initial vegetation analysis (see Chapter 8),
-  #I became super intrigued about the pathway of recovery between healthy and degraded sites. 
-
-#In the data preparation phase of this code (Chapter 2), I did the following:
-  #Assigned a "Healthy" category to all Runnel and No Action tidesheds with UVVR Scores =< 0.13
-  #Assigned a "Degraded" category to all Runnel and No Action tidesheds with UVVR scores > 0.13
-  #All Reference tidesheds were assigned "Healthy" category (very few with UVVR scores > 0.13)
-
-#Step 1 - Create the Timeline of the Healthy and Degraded with descriptive Stats
-
-a
-
-
-
-
-#Step 2 - Visualize the descriptive stats over the restoration timeline
-  #UVVR Graph
-
-
-
-
-
-#Vegetated Area Graph
-
-
-
-
-
-
-
-
-#-------------------------------------------------------------------------------------------------------
 
 #CHAPTER 5: DETERMINE TOTAL VETETATED AREA LOSS/GAINS SINCE 2010
 
