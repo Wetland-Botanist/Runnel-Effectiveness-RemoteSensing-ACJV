@@ -359,6 +359,23 @@ Database <- Database %>%
   ungroup()
 
 
+# Lastly, I want to categorize the No Action Control and Runnel Tidesheds as 'Health' or 'Degraded'
+  #based on the UVVR Score right immediately prior to restoration (-2 - 0 years)
+  #Degraded tidesheds are considered with UVVR scores > 0.13
+  #All reference tidesheds are considered 'Healthy' since very few have UVVR scores > 0.13
+
+
+Database <- Database %>%
+  group_by(Tideshed_ID) %>%
+    mutate(Timeline.Baseline = max(Timeline[Timeline <= 0]),
+           
+           UVVR.Baseline = UVVR[which(Timeline == Timeline.Baseline)],
+      
+           BaselineCondition = ifelse(Treatment == "Reference", "Healthy", 
+                                      ifelse(UVVR.Baseline >= 0.13, "Degraded", "Healthy"))) %>%
+ungroup()
+
+
 #Export the new combined Database
 #We will keep the Database.Veg and Database.UVVR for later analyses for simplicity
 
@@ -411,6 +428,42 @@ write.csv(Timeline.Metrics, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - 
 
 
 
+#Step 2: Create the Timelines based on Baseline Condition with dplyr, summarise(), and mutate() functions
+#The code calculates the average and standard error UVVR score  & Percent Vegetated Area
+# for each timeline of the tidesheds within each treatment
+#The code also rounds the Veg_percent to 2 decimal points for easy reading
+
+Timeline.Health <- Database %>%
+  group_by(Timeline, Treatment, BaselineCondition) %>%
+  summarise(
+    UVVR.avg = mean(UVVR, na.rm = TRUE),
+    UVVR.se = sd(UVVR, na.rm = TRUE)/sqrt(n()),
+    
+    Veg_Percent.avg = mean(Veg_Percent, na.rm = TRUE),
+    Veg_Percent.se = sd(Veg_Percent, na.rm = TRUE)/sqrt(n()),
+    
+    Veg_PChange.avg = mean(Veg_PChange, na.rm = TRUE),
+    Veg_PChange.se = sd(Veg_PChange, na.rm = TRUE)/sqrt(n()),
+    
+    
+    Count = n() )  %>%
+  mutate(
+    Veg_Percent.avg = round(Veg_Percent.avg, 2),
+    Veg_Percent.se = round(Veg_Percent.se, 2),
+    
+    Veg_PChange.avg = round(Veg_PChange.avg, 2),
+    Veg_PChange.se = round(Veg_PChange.se, 2)) %>%
+  ungroup()
+
+
+glimpse(Timeline.Health)
+
+#Export the Timeline Database
+
+write.csv(Timeline.Health, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\ACJV_Health_Timeline.csv")
+
+
+
 
 Database.stats <- Database %>%
   group_by(Tideshed_ID) %>%
@@ -423,12 +476,12 @@ Database.stats <- Database %>%
             n = n())
 
 
-
+rm(Database.stats)
 
 
 #_________________________________________________________________________________________________________
 
-#Book 2: UVVR ANALYSIS
+#Book 2: UVVR MIXED MODEL ANALYSIS
 
 #___________________________________________________________________________________________________________
 
@@ -449,11 +502,16 @@ UVVR.Linear <- lmer(UVVR ~ Timeline * Treatment + (1|Site) + (1|Tideshed_ID),
 
 UVVR.Linear.tidy <- broom.mixed::tidy(UVVR.Linear)
 
+UVVR.Linear.tidy
+
 UVVR.Linear.anova <- as.data.frame(anova(UVVR.Linear)) %>%
   mutate(coeff = row.names(.))
 
+UVVR.Linear.anova
+
 UVVR.Linear.glance <- broom.mixed::glance(UVVR.Linear)
 
+UVVR.Linear.glance
 
 #Step 2 - Check the assumptions of homogeneity and normal distribution with visual inspection of residuals
 
@@ -543,7 +601,7 @@ Linear.Graph.UVVR <- ggplot() +
              aes(x = Timeline, y = UVVR.avg, fill = Treatment), 
              shape = 21, size = 5) +
   labs(x = "Age Relative to Restoration (yrs)", 
-       y = "Average UVVR Score") + 
+       y = "UVVR Score") + 
   scale_x_continuous(limits = c(-10.5, 8.5), 
                      breaks = seq(-10, 8, 2)) + 
   scale_y_continuous(limits = c(0, 1.0), 
@@ -615,14 +673,21 @@ Linear.Graph.UVVR
 #the estimates of each segment. First estimate = Slope of segment 1, Second estimate = change in slope
 
 UVVR.Spline <- lmer(UVVR ~ bs(Timeline, knots = 0, degree = 1) * Treatment + (1|Site) + (1|Tideshed_ID),
-                    data = filter(Database), na.action = na.omit)
+                    data = Database, na.action = na.omit)
 
 Spline.tidy <- broom.mixed::tidy(UVVR.Spline)
 
+Spline.tidy
+
 Spline.glance <- broom.mixed::glance(UVVR.Spline)
+
+Spline.glance
 
 Spline.anova <- data.frame(anova(UVVR.Spline)) %>%
   mutate(coeff = rownames(.))
+
+Spline.anova
+
 
 
 #Step 2 - Check the assumptions of homogeneity and normal distribution with visual inspection of residuals
@@ -715,7 +780,7 @@ Spline.Graph.UVVR <- ggplot() +
              aes(x = Timeline, y = UVVR.avg, fill = Treatment), 
              shape = 21, size = 5.5) +
   labs(x = "Age Relative to Restoration (yrs)", 
-       y = "Average UVVR Score") + 
+       y = "UVVR Score") + 
   scale_x_continuous(limits = c(-10.5, 8.5), 
                      breaks = seq(-10, 8, 2)) + 
   scale_y_continuous(limits = c(0, 1.0), 
@@ -740,7 +805,174 @@ Spline.Graph.UVVR
 
 
 
+#_____________________________________________________________________________________________________________
 
+#Chapter 3: Spline Mixed Model (3 way interaction) of UVVR
+
+#After review of the data, it seemed there was a complete divergence between the No Action Control and Runnel
+  #tidesheds when analyzed between Healthy (UVVR < 0.13) and Degraded ( UVVR > 0.13) tideshed areas prior
+  # to restoration. If you look at the runnel tidesheds, there were a handful of sites with still vigorous
+  #vegetation cover (Jacob's Point, Broad Cove, Essex, Sapowet, etc.) at some interior marshes. This does not
+  #mean that the tidesheds are degraded - could be waterlogged, vegetation dominated by S. alterniflora - but
+  #from the standpoint of the UVVR and the classification, the salt marsh is healthy.
+
+#To analyze this trend more thoroughly, we will create a mixed linear spline model with the effects:
+    # Fixed: Timeline, Treatment, Baseline Condition, and Three-way Interaction
+    # Random: Site, Unique Tideshed ID
+
+#Only the runnel and no action control treatments were subdivided into Healthy and Degraded. Few tidesheds of
+  #the reference treatment were considered Degraded, so all were retroactively classified as Healthy. Due to the 
+  #lack of a sub-treatment, the reference treatment was removed from further investigation.
+
+#The code below is adopted from Chapter 2 in this Book and is modified to incorporate the three-way interaction,
+  #most of the variable names remained the same except for figures (facetted figures later in code)
+
+
+# Page 1 - Create the Splines Model with the Splines Package and bs() function
+
+
+UVVR.Spline <- lmer(UVVR ~ bs(Timeline, knots = 0, degree = 1) * Treatment * BaselineCondition + (1|Site) + (1|Tideshed_ID),
+                    data = filter(Database, Treatment != 'Reference'), na.action = na.omit)
+
+Spline.tidy <- broom.mixed::tidy(UVVR.Spline)
+
+Spline.tidy
+
+Spline.glance <- broom.mixed::glance(UVVR.Spline)
+
+Spline.glance
+
+Spline.anova <- data.frame(anova(UVVR.Spline)) %>%
+  mutate(coeff = rownames(.))
+
+Spline.anova
+
+
+
+#Step 2 - Check the assumptions of homogeneity and normal distribution with visual inspection of residuals
+
+#Assumption 1 - Linearity
+#Plot residuals of the model and observed values
+
+plot(resid(UVVR.Spline), Database$UVVR)
+
+
+#Assumption 2 - Homogeneity of Variance
+
+plot(UVVR.Spline)
+
+#Assumption 3 - Normality of Residuals
+
+qqnorm(residuals(UVVR.Spline))
+
+
+
+
+#Page 2 - Export the Spline Mixed Model Model Summaries
+
+write.csv(Spline.glance, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_3way_glance.csv")
+
+write.csv(Spline.tidy, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_3way_tidy.csv")
+
+write.csv(Spline.anova, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_3way_anova.csv")
+
+rm(Spline.glance, Spline.tidy, Spline.anova)
+
+
+#Page 3 - Predict Spline Regression (without random effects) with ggpredict()
+
+#Using the ggpredict() function, the mean value and confidence interval can be calculated for each
+  #treatment at each timeline point. ggpredict() function is a powerful tool!
+#For visualization purposes, the confidence interval was calculated for the variance of the fixed effects,
+  #while keeping the random effects constant. Essentially, the confidence interval becomes incredibly large
+  #and not useful for visualization purposes
+#Lastly, the columns are renamed for easy ggploting. For UVVR, the lower confidence interval is set to zero
+  #if negative, since you can not have a UVVR score of zero. 
+
+
+Spline.preds <- ggpredict(UVVR.Spline, terms = c("Timeline [all]", "Treatment [all]", "BaselineCondition [all]"),
+                          type = "fixed", interval = 'confidence') %>%
+  rename(Timeline = x,
+         Treatment = group,
+         UVVR = predicted,
+         BaselineCondition = facet) %>%
+  arrange(Treatment) %>%
+  mutate(conf.low = ifelse(conf.low < 0, 0, conf.low))
+
+
+#Page 4 - Calcualte the Slopes of the Spline Models with predicted values
+#Using the predicted mean values, the slopes of each treatment can be calculated pre- and post-restoration
+
+Spline.Slope <- Spline.preds %>%
+  group_by(Treatment, BaselineCondition) %>%
+  summarise(slope.pre = (UVVR[which(Timeline == 0)] - UVVR[which(Timeline == min(Timeline))]) / (0 - min(Timeline)),
+            
+            slope.post = (UVVR[which(Timeline == max(Timeline))] - UVVR[which(Timeline == min(Timeline = 0))]) / (max(Timeline) - 0)) %>%
+  ungroup()
+
+Spline.Slope
+
+write.csv(Spline.Slope, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_Slopes_Condition.csv")
+
+
+# Page 5 - Graph the mixed Spline Model (without Ditch Remediation) with facet wrap function
+
+#There are two data sets being graphed: Predicted values of mixed model and the mean values (with error bars) 
+#The treatments are graphed in the following order: No Action, Reference, Ditch, and Runnel 
+#These corresponds with basic R colors that correspond well with each treatment
+
+
+Spline.preds$Treatment <- factor(Spline.preds$Treatment,
+                                 levels = c("No Action", "Reference","Runnel"))
+
+Spline.preds$BaselineCondition <- factor(Spline.preds$BaselineCondition,
+                                 levels = c("Degraded", "Healthy"))
+
+Health.UVVR <- ggplot() + 
+geom_vline(xintercept = 0, size = 1, colour = "grey", 
+           linetype = "dashed") + 
+  geom_ribbon(data = filter(Spline.preds),
+              aes(x = Timeline, ymin = conf.low, ymax = conf.high, fill = BaselineCondition),
+              alpha = 0.25) +
+  geom_line(data = filter(Spline.preds),
+            aes(x = Timeline, y = UVVR, colour = BaselineCondition),
+            size = 1.5) +
+  geom_errorbar(data = filter(Timeline.Health, Treatment != "Reference"),
+                aes(x = Timeline, ymin = UVVR.avg - UVVR.se, ymax = UVVR.avg + UVVR.se,
+                    colour = BaselineCondition),
+                size = 1, width = 0.5) +
+  geom_point(data = filter(Timeline.Health, Treatment != "Reference"),
+             aes(x = Timeline, y = UVVR.avg, fill = BaselineCondition), 
+             size = 5.5, shape = 21) +
+  labs(x = "Age Relative to Restoration (yrs)", 
+       y = "UVVR Score") + 
+  scale_x_continuous(limits = c(-10.5, 8.5), 
+                     breaks = seq(-10, 8, 2)) + 
+  scale_y_continuous(limits = c(0, 1.25), 
+                     breaks = seq(0, 1.25, 0.25)) +
+  scale_fill_manual(values = c(wes_palette("FantasticFox1")[1], wes_palette("FantasticFox1")[3])) + 
+  scale_colour_manual(values = c(wes_palette("FantasticFox1")[1], wes_palette("FantasticFox1")[3])) + 
+  theme_bw() +
+  theme(
+    legend.position = c(0.12, 0.92),
+    legend.background = element_rect(
+      size = 0.5, linetype = "solid", colour = "black" ),
+    legend.text = element_text(size = 15, colour = "black"),
+    legend.title = element_blank(),
+    panel.grid.major.x = element_blank(), 
+    panel.grid.minor.x = element_blank(),
+    strip.text.x = element_text(size = 22.5, colour = "black"),
+    strip.background = element_blank(),
+    axis.title = element_text(size = 22.5, colour = "black"),
+    axis.text = element_text(size = 22.5, colour = "black")) + 
+  facet_wrap(~Treatment, nrow = 3, ncol = 1)
+
+Health.UVVR
+
+
+
+
+  
 
 
 
@@ -752,10 +984,11 @@ Spline.Graph.UVVR
 
 
 #Page 1 - Model Comparison: Compare Linear and Spline models to defend use of Spline
+
 #We are using a Likelihood Ratio Test (via the anova() function) to compare Linear and Spline mixed models
-#ability to account for the variance.
+  #ability to account for the variance.
 #Ditch Remediation treatment is not included in the Linear mixed model, since it can not be accounted for
-#in the Spline model
+  #in the Spline model
 
 UVVR.Linear.mod <- lmer(UVVR ~ Timeline * Treatment + (1|Site) + (1|Tideshed_ID), 
                         data = filter(Database), na.action = na.omit)
@@ -763,16 +996,19 @@ UVVR.Linear.mod <- lmer(UVVR ~ Timeline * Treatment + (1|Site) + (1|Tideshed_ID)
 
 Model.compare <- anova(UVVR.Linear.mod, UVVR.Spline)
 
+Model.compare
+
 write.csv(Model.compare,  "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_LikliehoodTest_Models.csv")
 
 
 #Page 2 - Determine if runnel restoration was applied to the most degraded tidesheds 
-#One-way ANOVAs will be applied to the UVVR scores of all the treatment tidesheds at the latest
-#pre-restoration time (e.g., -2 -> 0 yrs)
-#Essentially, we want to see if the runnel restoration activities were applied to tidesheds that were
-#more degraded than references and similar to no action tidesheds
-#I am not exactly how to compare models with mixed models, so Site will be used as a fixed blocking effect
-#in the one-way ANOVA. Tideshed and Timeline are not needed as covariate effects in the analysis
+  #One-way ANOVAs will be applied to the UVVR scores of all the treatment tidesheds at the latest
+   #pre-restoration time (e.g., -2 -> 0 yrs)
+  #Essentially, we want to see if the runnel restoration activities were applied to tidesheds that were
+    #more degraded than references and similar to no action tidesheds
+  # The one-way mixed ANOVA will be completed in JMP, due to ease of completing a unequal sample size
+    #Dunnett's post-hoc analysis. In the R code, we are organizing the data to input into JMP and creating figures
+
 
 #Step 1 - Determine the latest pre-restoration date for each tideshed 
 #Each tideshed had aerial imagery at some point from -2 -> 0 yrs before restoration
@@ -812,35 +1048,7 @@ write.csv(Tideshed.pre.sum, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - 
 
 
 
-
-#Step 2 - One-way ANOVA with blocking factor of Site
-#Tukey Test with the TukeyHSD() function is applied to the model for pairwise comparisons between treatments
-#Results of the model and Tukey Test are exported to csvs
-
-pre.anova <- lmer(UVVR ~ Treatment + (1|Site), data = Tideshed.pre)
-
-pre.anova.tidy <- broom.mixed::tidy(pre.anova)
-
-pre.anova.tidy
-
-tukey.test <- TukeyHSD(aov(pre.anova))
-
-Tukey.test <- tukey.test$Treatment
-
-Tukey.test
-
-write.csv(pre.anova, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_PreRestoration_ANOVA.csv")
-
-write.csv(Tukey.test, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Prerestoration_ANOVA_Tukey.csv")
-
-
-rm(anova, pre.anova, Tukey.test, Spline.intercepts, Ditch.Lin.intercept, tukey.test)
-
-rm(Spline.Graph, Spline.preds, Spline.Slope, Model.compare, Model.Verify, Piece.predict, Piece.Predict,
-   UVVR.Linear.mod, Veg.Pre.glance, Linear.Predict)
-
-
-#Step 4 - Visualize the One-Way ANOVA
+#Step 3 - Visualize the One-Way ANOVA of UVVR
 
 PreRestoration.UVVR.Graph <- ggplot() + 
   geom_boxplot(data = Tideshed.pre,
@@ -889,7 +1097,7 @@ rm(pre.anova.tidy, Piece.Linear.Pre, Linear.Slope, Linear.preds)
 
 #___________________________________________________________________________________________________________
 
-#Book 3: Vegetated Area Analysis
+#Book 3: Vegetated Area Mixed Model Analysis
 
 #___________________________________________________________________________________________________________
 
@@ -905,7 +1113,7 @@ rm(pre.anova.tidy, Piece.Linear.Pre, Linear.Slope, Linear.preds)
 
 
 
-Veg.Linear <- lmer(Veg_PChange ~ Timeline * Treatment + (1|Site) + (1|Tideshed_ID), 
+Veg.Linear <- lmer(Veg_Percent ~ Timeline * Treatment + (1|Site) + (1|Tideshed_ID), 
                    data = Database, na.action = na.omit)
 
 Veg.Linear.tidy <- broom.mixed::tidy(Veg.Linear)
@@ -960,7 +1168,7 @@ Linear.preds <- ggpredict(Veg.Linear, c("Timeline", "Treatment"),
                           type = "fixed", interval = 'confidence') %>%
   rename(Timeline = x,
          Treatment = group,
-         Veg_PChange = predicted) %>%
+         Veg_Percent = predicted) %>%
   arrange(Treatment)
 
 
@@ -970,8 +1178,10 @@ Linear.preds <- ggpredict(Veg.Linear, c("Timeline", "Treatment"),
 
 Linear.Slope <- Linear.preds %>%
   group_by(Treatment) %>%
-   summarise(slope = (Veg_PChange[which.max(Timeline)] - Veg_PChange[which.min(Timeline)]) / (max(Timeline) - min(Timeline)) ) %>%
+   summarise(slope = (Veg_Percent[which.max(Timeline)] - Veg_Percent[which.min(Timeline)]) / (max(Timeline) - min(Timeline)) ) %>%
 ungroup()
+
+Linear.Slope
 
 write.csv(Linear.Slope, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Linear_Slopes.csv")
 
@@ -990,24 +1200,24 @@ Linear.Graph.Veg <- ggplot() +
   geom_vline(xintercept = 0, size = 1, colour = "grey", 
              linetype = "dashed") + 
   geom_line(data = Linear.preds,
-            aes(x = Timeline, y = Veg_PChange, colour = Treatment),
+            aes(x = Timeline, y = Veg_Percent, colour = Treatment),
             size = 1.5) +
   geom_ribbon(data = Linear.preds,
               aes(x = Timeline, ymin = conf.low, ymax = conf.high, fill = Treatment),
               alpha = 0.25) +
   geom_errorbar(data = Timeline.Metrics,
-                aes(x = Timeline, ymin = Veg_PChange.avg - Veg_PChange.se, ymax = Veg_PChange.avg + Veg_PChange.se, 
+                aes(x = Timeline, ymin = Veg_Percent.avg - Veg_Percent.se, ymax = Veg_Percent.avg + Veg_Percent.se, 
                     colour = Treatment),
                 width = 0.5, size = 1) +
   geom_point(data = Timeline.Metrics,
-             aes(x = Timeline, y = Veg_PChange.avg, fill = Treatment), 
+             aes(x = Timeline, y = Veg_Percent.avg, fill = Treatment), 
              shape = 21, size = 5) +
   labs(x = "Age Relative to Restoration (yrs)", 
-       y = "Change in Vegetated Area (%)") + 
+       y = "Vegetated Area (%)") + 
   scale_x_continuous(limits = c(-10.5, 8.5), 
                      breaks = seq(-10, 8, 2)) + 
-  scale_y_continuous(limits = c(-10, 22.5), 
-                     breaks = seq(-10, 22.5, 5)) +
+  scale_y_continuous(limits = c(60, 105), 
+                     breaks = seq(60, 100, 10)) +
   scale_fill_manual(values = wes_palette("FantasticFox1", n = 3)) + 
   scale_colour_manual(values = wes_palette("FantasticFox1", n = 3)) + 
   theme_bw() +
@@ -1034,7 +1244,7 @@ Linear.Graph
 
 ggsave(Linear.Graph, height = 12, width = 16, dpi = 600,
        limitsize = FALSE, units = "in",
-       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Linear_MixedModels.jpg")
+       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Linear_MixedModels_VegPercent.jpg")
 
 
 
@@ -1055,37 +1265,29 @@ ggsave(Linear.Graph, height = 12, width = 16, dpi = 600,
 
 #CHAPTER 2: Vegetated Area - SPLINE REGRESSIONS
 
-# To complete a spline regression, we need to define the "knots" of the time/location on the 
-#x-axis where the regression shifts
-# For this analysis, the Knot will be placed at Time = 0 yrs relative to Runnel Construction Date, 
-# since we are curious about the shift in the slope pre- and post-restoration
 
-#The full model will be a mixed spline model. #Mixed model is created with the lmer() function and the outputs of the mixed model are recorded with
-#various broom.mixed package functions. Broom.mixed converts complex lme4 outputs to tables
-#For the mixed model, UVVR is the response variable, Timeline and Treatment are fixed effects,
-#and Site and Tideshed_ID are random effects. 
-#Note: Individual tidesheds are uniquely ID'ed, rendering a nesting structure for the data obsolete
 
 
 # Page 1 - Create the Splines Model with the Splines Package and bs() function
 
-#The bs() function allows us to designate the knot locations for the spline model
-#Later on in the code, we will individually create a Spline Model for each management treatment,
-#but for now, this is a simple and quick way to calculate the ANOVA table for the regressions
-#Spline regressions are completed with raw data (e.g., all tidesheds, not means)
-#The statistical terms are rounded to 4 digits
-#Lastly, the slope of each segment is calculated. The slope of the second segment is calculated as summation of 
-#the estimates of each segment. First estimate = Slope of segment 1, Second estimate = change in slope
 
-Veg.Spline <- lmer(Veg_PChange ~ bs(Timeline, knots = 0, degree = 1) * Treatment + (1|Site) + (1|Tideshed_ID),
+Veg.Spline <- lmer(Veg_Percent ~ bs(Timeline, knots = 0, degree = 1) * Treatment + (1|Site) + (1|Tideshed_ID),
                    data = Database, na.action = na.omit)
 
 Spline.tidy <- broom.mixed::tidy(Veg.Spline)
 
+Spline.tidy
+
+
 Spline.glance <- broom.mixed::glance(Veg.Spline)
+
+Spline.glance
+
 
 Spline.anova <- data.frame(anova(Veg.Spline)) %>%
   mutate(coeff = rownames(.))
+
+Spline.anova
 
 
 
@@ -1094,7 +1296,7 @@ Spline.anova <- data.frame(anova(Veg.Spline)) %>%
 #Assumption 1 - Linearity
 #Plot residuals of the model and observed values
 
-plot(resid(Veg.Spline), Database$Veg_PChange)
+plot(resid(Veg.Spline), Database$Veg_Percent)
 
 
 #Assumption 2 - Homogeneity of Variance
@@ -1122,10 +1324,10 @@ rm(Spline.glance, Spline.tidy, Spline.anova)
 #Page 3 - Predict Spline Regression (without random effects) with ggpredict()
 
 #Using the ggpredict() function, the mean value and confidence interval can be calculated for each
-#treatment at each timeline point. ggpredict() function is a powerful tool!
+  #treatment at each timeline point. ggpredict() function is a powerful tool!
 #For visualization purposes, the confidence interval was calculated for the variance of the fixed effects,
-#while keeping the random effects constant. Essentially, the confidence interval becomes incredibly large
-#and not useful for visualization purposes
+  #while keeping the random effects constant. Essentially, the confidence interval becomes incredibly large
+  #and not useful for visualization purposes
 
 
 
@@ -1133,7 +1335,7 @@ Spline.preds <- ggpredict(Veg.Spline, terms = c("Timeline [all]", "Treatment [al
                           type = "fixed", interval = 'confidence') %>%
   rename(Timeline = x,
          Treatment = group,
-         Veg_PChange = predicted) %>%
+         Veg_Percent = predicted) %>%
   arrange(Treatment)
 
 
@@ -1142,10 +1344,12 @@ Spline.preds <- ggpredict(Veg.Spline, terms = c("Timeline [all]", "Treatment [al
 
 Spline.Slope <- Spline.preds %>%
   group_by(Treatment) %>%
-  summarise(slope.pre = (Veg_PChange[which(Timeline == 0)] - Veg_PChange[which(Timeline == min(Timeline))]) / (0 - min(Timeline)),
+  summarise(slope.pre = (Veg_Percent[which(Timeline == 0)] - Veg_Percent[which(Timeline == min(Timeline))]) / (0 - min(Timeline)),
             
-            slope.post = (Veg_PChange[which(Timeline == max(Timeline))] - Veg_PChange[which(Timeline == min(Timeline = 0))]) / (max(Timeline) - 0)) %>%
+            slope.post = (Veg_Percent[which(Timeline == max(Timeline))] - Veg_Percent[which(Timeline == min(Timeline = 0))]) / (max(Timeline) - 0)) %>%
   ungroup()
+
+Spline.Slope
 
 write.csv(Spline.Slope, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Slopes.csv")
 
@@ -1160,30 +1364,31 @@ write.csv(Spline.Slope, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_M
 Spline.preds$Treatment <- factor(Spline.preds$Treatment,
                                  levels = c("No Action", "Reference",  "Runnel"))
 
-Spline.Graph.Veg <- ggplot() + 
+Spline.Veg <- ggplot() + 
   geom_vline(xintercept = 0, size = 1, colour = "grey", 
              linetype = "dashed") + 
+  geom_line(data = Spline.preds,
+            aes(x = Timeline, y = Veg_Percent, colour = Treatment),
+            size = 1.5) +
   geom_ribbon(data = Spline.preds,
               aes(x = Timeline, ymin = conf.low, ymax = conf.high, fill = Treatment),
               alpha = 0.25) +
-  geom_line(data = Spline.preds,
-            aes(x = Timeline, y = Veg_PChange, colour = Treatment),
-            size = 1.5) +
   geom_errorbar(data = Timeline.Metrics,
-                aes(x = Timeline, ymin = Veg_PChange.avg - Veg_PChange.se, ymax = Veg_PChange.avg + Veg_PChange.se,
-                    colour = Treatment),
-                size = 0.75) +
+                aes(x = Timeline, ymin = Veg_Percent.avg - Veg_Percent.se, 
+                    ymax = Veg_Percent.avg + Veg_Percent.se,
+                    colour = BaselineCondition),
+                size = 1, width = 0.5) +
   geom_point(data = Timeline.Metrics,
-             aes(x = Timeline, y = Veg_PChange.avg, fill = Treatment), 
-             shape = 21, size = 5.5) +
+             aes(x = Timeline, y = Veg_Percent.avg, fill = Treatment), 
+             size = 5.5, shape = 21) +
   labs(x = "Age Relative to Restoration (yrs)", 
-       y = "Change in Vegetated Area (%)") + 
+       y = "Vegetated Area (%)") + 
   scale_x_continuous(limits = c(-10.5, 8.5), 
                      breaks = seq(-10, 8, 2)) + 
-  scale_y_continuous(limits = c(-10, 25), 
-                     breaks = seq(-10, 25, 5)) +
-  scale_fill_manual(values = wes_palette("FantasticFox1", n = 3)) + 
-  scale_colour_manual(values = wes_palette("FantasticFox1", n = 3)) + 
+  scale_y_continuous(limits = c(60, 105), 
+                     breaks = seq(60, 100, 10)) +
+  scale_fill_manual(values = wes_palette("FantasticFox1", type = "discrete", n = 3)) + 
+  scale_colour_manual(values = wes_palette("FantasticFox1", type = "discrete", n = 3)) + 
   theme_bw() +
   theme(
     legend.position = "none",
@@ -1206,7 +1411,203 @@ Spline.Graph
 
 ggsave(Spline.Graph, height = 12, width = 16, dpi = 600,
        limitsize = FALSE, units = "in",
-       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Spline_MixedModels.jpg")
+       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Spline_MixedModels_VegPercent.jpg")
+
+
+
+
+rm(Spline.Graph, Spline.Graph.UVVR, Spline.Graph.Veg, Spline.preds, Spline.Slope, UVVR.Linear,
+   UVVR.Spline, Veg.Linear, Veg.Spline, UVVR.Linear.anova, UVVR.Linear.glance, UVVR.Linear.tidy,
+   Linear.Slope, Linear.preds, Linear.Graph.UVVR, Linear.Graph.Veg, Linear.Graph)
+
+
+
+
+
+
+
+#___________________________________________________________________________________________________________
+
+#Chapter 4: Spline Mixed Model on Baseline Condition for Vegetated Area
+
+#After review of the data, it seemed there was a complete divergence between the No Action Control and Runnel
+  #tidesheds when analyzed between Healthy (UVVR < 0.13) and Degraded ( UVVR > 0.13) tideshed areas prior
+  #to restoration. If you look at the runnel tidesheds, there were a handful of sites with still vigorous
+  #vegetation cover (Jacob's Point, Broad Cove, Essex, Sapowet, etc.) at some interior marshes. This does not
+  #mean that the tidesheds are degraded - could be waterlogged, vegetation dominated by S. alterniflora - but
+  #from the standpoint of the UVVR and the classification, the salt marsh is healthy.
+
+#To analyze this trend more thoroughly, we will create a mixed linear spline model with the effects:
+  # Fixed: Timeline, Treatment, Baseline Condition, and Three-way Interaction
+  # Random: Site, Unique Tideshed ID
+
+#Only the runnel and no action control treatments were subdivided into Healthy and Degraded. Few tidesheds of
+  #the reference treatment were considered Degraded, so all were retroactively classified as Healthy. Due to the 
+  #lack of a sub-treatment, the reference treatment was removed from further investigation.
+
+#The code below is adopted from Chapter 2 in this Book and is modified to incorporate the three-way interaction,
+  #most of the variable names remained the same except for figures (facetted figures later in code)
+
+
+Veg.Spline <- lmer(Veg_Percent ~ bs(Timeline, knots = 0, degree = 1) * Treatment * BaselineCondition + (1|Site) + (1|Tideshed_ID),
+                   data = filter(Database, Treatment != "Reference"), na.action = na.omit)
+
+Spline.tidy <- broom.mixed::tidy(Veg.Spline)
+
+Spline.tidy
+
+
+Spline.glance <- broom.mixed::glance(Veg.Spline)
+
+Spline.glance
+
+
+Spline.anova <- data.frame(anova(Veg.Spline)) %>%
+  mutate(coeff = rownames(.))
+
+Spline.anova
+
+
+
+#Step 2 - Check the assumptions of homogeneity and normal distribution with visual inspection of residuals
+
+#Assumption 1 - Linearity
+#Plot residuals of the model and observed values
+
+plot(resid(Veg.Spline), Database$Veg_PChange)
+
+
+#Assumption 2 - Homogeneity of Variance
+
+plot(Veg.Spline)
+
+
+
+#Assumption 3 - Residuals of the Model are Normally Distributed
+
+qqnorm(residuals(Veg.Spline))
+
+
+#Page 2 - Export the Spline Mixed Model Model Summaries
+
+write.csv(Spline.glance, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Health_glance.csv")
+
+write.csv(Spline.tidy, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Health_tidy.csv")
+
+write.csv(Spline.anova, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Health_anova.csv")
+
+rm(Spline.glance, Spline.tidy, Spline.anova)
+
+
+#Page 3 - Predict Spline Regression (without random effects) with ggpredict()
+
+#Using the ggpredict() function, the mean value and confidence interval can be calculated for each
+#treatment at each timeline point. ggpredict() function is a powerful tool!
+#For visualization purposes, the confidence interval was calculated for the variance of the fixed effects,
+#while keeping the random effects constant. Essentially, the confidence interval becomes incredibly large
+#and not useful for visualization purposes
+
+
+
+Spline.preds <- ggpredict(Veg.Spline, terms = c("Timeline [all]", "Treatment [all]", "BaselineCondition [all]"),
+                          type = "fixed", interval = 'confidence') %>%
+  rename(Timeline = x,
+         Treatment = group,
+         Veg_Percent = predicted,
+         BaselineCondition = facet) %>%
+  arrange(Treatment)
+
+
+#Page 4 - Calculate the Slopes of the Spline Models with predicted values
+#Using the predicted mean values, the slopes of each treatment can be calculated pre- and post-restoration
+
+Spline.Slope <- Spline.preds %>%
+  group_by(Treatment, BaselineCondition) %>%
+  summarise(slope.pre = (Veg_Percent[which(Timeline == 0)] - Veg_Percent[which(Timeline == min(Timeline))]) / (0 - min(Timeline)),
+            
+            slope.post = (Veg_Percent[which(Timeline == max(Timeline))] - Veg_Percent[which(Timeline == min(Timeline = 0))]) / (max(Timeline) - 0)) %>%
+  ungroup()
+
+Spline.Slope
+
+write.csv(Spline.Slope, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Slopes_Health.csv")
+
+
+# Page 5 - Graph the mixed Spline Model (without Ditch Remediation) with facet wrap function
+
+#There are two data sets being graphed: Predicted values of mixed model and the mean values (with error bars) 
+#The treatments are graphed in the following order: No Action, Reference, Ditch, and Runnel 
+#These corresponds with basic R colors that correspond well with each treatment
+
+
+Spline.preds$Treatment <- factor(Spline.preds$Treatment,
+                                 levels = c("No Action", "Reference",  "Runnel"))
+
+Spline.preds$BaselineCondition <- factor(Spline.preds$BaselineCondition,
+                                 levels = c("Healthy", "Degraded"))
+
+Health.Veg <- ggplot() + 
+  geom_vline(xintercept = 0, size = 1, colour = "grey", 
+             linetype = "dashed") + 
+  geom_line(data = Spline.preds,
+            aes(x = Timeline, y = Veg_Percent, colour = BaselineCondition),
+            size = 1.5) +
+  geom_ribbon(data = Spline.preds,
+              aes(x = Timeline, ymin = conf.low, ymax = conf.high, fill = BaselineCondition),
+              alpha = 0.25) +
+  geom_errorbar(data = filter(Timeline.Health, Treatment != "Reference"),
+                aes(x = Timeline, ymin = Veg_Percent.avg - Veg_Percent.se, 
+                    ymax = Veg_Percent.avg + Veg_Percent.se,
+                    colour = BaselineCondition),
+                size = 1, width = 0.5) +
+  geom_point(data = filter(Timeline.Health, Treatment != "Reference"),
+             aes(x = Timeline, y = Veg_Percent.avg, fill = BaselineCondition), 
+             size = 5.5, shape = 21) +
+  labs(x = "Age Relative to Restoration (yrs)", 
+       y = "Vegetated Area (%)") + 
+  scale_x_continuous(limits = c(-10.5, 8.5), 
+                     breaks = seq(-10, 8, 2)) + 
+  scale_y_continuous(limits = c(60, 105), 
+                     breaks = seq(60, 100, 10)) +
+  scale_fill_manual(values = c(wes_palette("FantasticFox1")[1], wes_palette("FantasticFox1")[3])) + 
+  scale_colour_manual(values = c(wes_palette("FantasticFox1")[1], wes_palette("FantasticFox1")[3])) + 
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    strip.text.x = element_text(size = 22.5, colour = "black"),
+    strip.background = element_blank(),
+    axis.title = element_text(size = 22.5, colour = "black"),
+    axis.text = element_text(size = 22.5, colour = "black")) + 
+  facet_wrap(~Treatment,
+             ncol = 1, nrow = 3)
+
+Health.Veg
+
+
+Health.Graph <- Health.UVVR + Health.Veg
+
+
+Health.Graph
+
+ggsave(Health.Graph, height = 8, width = 16, dpi = 600,
+       limitsize = FALSE, units = "in",
+       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Health_Graph_NoRef.jpg")
+
+
+
+rm(Spline.Graph, Spline.Graph.UVVR, Spline.Graph.Veg, Spline.preds, Spline.Slope, UVVR.Linear,
+   UVVR.Spline, Veg.Linear, Veg.Spline, UVVR.Linear.anova, UVVR.Linear.glance, UVVR.Linear.tidy,
+   Linear.Slope, Linear.preds, Linear.Graph.UVVR, Linear.Graph.Veg, Linear.Graph,
+   Health.Graph, Health.UVVR, Health.Veg)
+
+
+
+
+
+
+
 
 
 
@@ -1228,16 +1629,18 @@ ggsave(Spline.Graph, height = 12, width = 16, dpi = 600,
 #Ditch Remediation treatment is not included in the Linear mixed model, since it can not be accounted for
 #in the Spline model
 
-Veg.Linear.mod <- lmer(Veg_PChange ~ Timeline * Treatment + (1|Site) + (1|Tideshed_ID), 
+Veg.Linear.mod <- lmer(Veg_Percent ~ Timeline * Treatment + (1|Site) + (1|Tideshed_ID), 
                        data = Database, na.action = na.omit)
 
 
 Model.compare <- anova(Veg.Linear.mod, Veg.Spline)
 
+Model.compare
+
 write.csv(Model.compare,  "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_LikliehoodTest_Models.csv")
 
 
-
+rm(Veg.Linear.mod, UVVR.Linear.mod, Model.compare)
 
 
 #Page 2 - Determine if runnel restoration was applied to the most degraded tidesheds 
@@ -1254,37 +1657,7 @@ write.csv(Model.compare,  "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI
 #Note: This was already completed in the UVVR one-way ANOVA
 
 
-#Step 2 - One-way ANOVA with blocking factor of Site
-#Tukey Test with the TukeyHSD() function is applied to the model for pairwise comparisons between treatments
-#Results of the model and Tukey Test are exported to csvs
-
-pre.anova <- lm(Veg_PChange ~ Treatment + Site, data = Tideshed.pre)
-
-pre.anova.tidy <- tidy(anova(pre.anova))
-
-pre.anova$model
-
-
-pre.anova
-
-tukey.test <- TukeyHSD(aov(pre.anova))
-
-Tukey.test <- tukey.test$Treatment
-
-Tukey.test
-
-write.csv(pre.anova.tidy, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_PreRestoration_ANOVA.csv")
-
-write.csv(Tukey.test, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Prerestoration_ANOVA_Tukey.csv")
-
-
-rm(anova, pre.anova, Tukey.test, Spline.intercepts, Ditch.Lin.intercept, tukey.test)
-
-rm(Spline.Graph, Spline.preds, Spline.Slope, Model.compare, Model.Verify, Piece.predict, Piece.Predict,
-   UVVR.Linear.mod, Veg.Pre.glance, Linear.Predict)
-
-
-#Step 4 - Visualize the One-Way ANOVA
+#Step 2 - Visualize the One-Way ANOVA
 #The calculations for the Percent Vegetated Area were completed in the One-Way ANOVA calculations for UVVR
 
 PreRestoration.Veg.Graph <- ggplot() + 
@@ -1319,12 +1692,47 @@ PreRestoration.Graph <- PreRestoration.UVVR.Graph / PreRestoration.Veg.Graph
 PreRestoration.Graph
 
 
+rm(PreRestoration.Graph, PreRestoration.UVVR.Graph, PreRestoration.Veg.Graph, 
+   Tideshed.pre, Tideshed.pre.sum)
 
 
 
 
 
 
+
+
+#_____________________________________________________________________________________________________________
+
+
+#Chapter 5: Data Exploration of Healthy and Degraded Condition Impact on Vegetation Recovery
+
+#One of the things I was super curious about was the high variability between years in the 
+  # recovery of vegetation of the runnel tidesheds. I understand that different sites are represented
+  # in different years (alternating sites and years based on 2 year NAIP schedule)
+#However, after conducting the rate of vegetation gain based on initial vegetation analysis (see Chapter 8),
+  #I became super intrigued about the pathway of recovery between healthy and degraded sites. 
+
+#In the data preparation phase of this code (Chapter 2), I did the following:
+  #Assigned a "Healthy" category to all Runnel and No Action tidesheds with UVVR Scores =< 0.13
+  #Assigned a "Degraded" category to all Runnel and No Action tidesheds with UVVR scores > 0.13
+  #All Reference tidesheds were assigned "Healthy" category (very few with UVVR scores > 0.13)
+
+#Step 1 - Create the Timeline of the Healthy and Degraded with descriptive Stats
+
+a
+
+
+
+
+#Step 2 - Visualize the descriptive stats over the restoration timeline
+  #UVVR Graph
+
+
+
+
+
+#Vegetated Area Graph
 
 
 
@@ -1655,13 +2063,15 @@ Database.Intl <- Database %>%
              
              Veg.Change = (Veg_Area - Veg.Baseline) / Timeline,
             
-             Veg.PChange = ((((Veg_Area - Veg.Baseline)/(Veg.Baseline)) / Timeline) * 100 )) %>%
+             Veg.PChange = ((((Veg_Area - Veg.Baseline)/(Veg.Baseline)) / Timeline) * 100 ),
+             
+             BaselineCondition = BaselineCondition) %>%
     
     filter(Timeline >= 5) %>%
     filter(Timeline == max(Timeline)) %>%
     filter(Tideshed_ID != 169) %>%
       mutate(UVVR.PChange = ifelse(UVVR.PChange == "NaN", 0, UVVR.PChange)) %>%
-    select(Site, Tideshed, Tideshed_ID, Timeline, Hectares, Timeline.Baseline, UVVR, UVVR.Baseline, UVVR.Change, 
+    select(Site, Tideshed, Tideshed_ID, Timeline, Hectares, BaselineCondition, Timeline.Baseline, UVVR, UVVR.Baseline, UVVR.Change, 
            UVVR.PChange, Veg_Area, Veg_Percent, Veg.Baseline, Veg.PBaseline, Veg.Change, Veg.PChange) %>%
 ungroup()
 
@@ -1719,18 +2129,19 @@ UVVR.PChange.preds <- ggpredict(UVVR.PChange.Model, c("UVVR.Baseline"),
 
 UVVR.PChange.graph <- ggplot() +
   geom_point(data = Database.Intl,
-             aes(x = UVVR.Baseline, y = UVVR.PChange),
-             size = 6, shape = 21, fill = "deepskyblue1") + 
+             aes(x = UVVR.Baseline, y = UVVR.PChange, fill = BaselineCondition),
+             size = 6, shape = 21) + 
   labs(y = "Annual Change of UVVR (%)", 
        x = "Pre-restoration UVVR") + 
   scale_x_continuous(limits = c(0, 1), 
                      breaks = seq(0, 1, 0.2)) + 
   scale_y_continuous(limits = c(-20, 10),
                      breaks = seq(-20, 10, 5)) + 
+  scale_fill_manual(values = c(wes_palette("FantasticFox1")[1], wes_palette("FantasticFox1")[3])) + 
   theme_bw() +
   theme(
-    legend.position = c(0.90, 0.45),
-    legend.text = element_text(size = 10),
+    legend.position = c(0.88, 0.85),
+    legend.text = element_text(size = 15),
     legend.title = element_blank(),
     legend.background = element_rect(
       size = 0.5, linetype = "solid", colour = "black"),
@@ -1798,15 +2209,15 @@ Veg.PChange.graph <- ggplot() +
             aes(x = Veg.PBaseline, y = Veg.PChange),
             size = 1.5, colour = 'black') + 
   geom_point(data = Database.Intl,
-             aes(x = Veg.PBaseline, y = Veg.PChange),
-             size = 6, shape = 21, fill = "green3") + 
-  
+             aes(x = Veg.PBaseline, y = Veg.PChange, fill = BaselineCondition),
+             size = 6, shape = 21) +
   labs(y = "Annual Change of Vegetated Area (%)", 
        x = "Pre-restoration Vegetated Area (%)") + 
   scale_x_continuous(limits = c(50, 100), 
                      breaks = seq(50, 100, 10)) + 
   scale_y_continuous(limits = c(-2, 6),
-                     breaks = seq(-2, 6, 2)) + 
+                     breaks = seq(-2, 6, 2)) +
+  scale_fill_manual(values = c(wes_palette("FantasticFox1")[1], wes_palette("FantasticFox1")[3])) + 
   theme_bw() +
   theme(
     legend.position = "none",
@@ -1856,9 +2267,9 @@ rm(Veg.Change.Model.anova, Veg.Change.Model.anova, Veg.Change.Model.glance, Veg.
 #_______________________________________________________________________________________________________
 
 
-#Chapter 8: Investigating the driver of variability in Runnel 
+#Chapter 8: Creating Individual Graphs of UVVR for each Runnel Tideshed
 
-#To first investigate what may be driving the variability in the runnel treatments, we need to visualise
+#To first investigate what may be driving the variability in the runnel treatments, we need to visualize
   #the UVVR score and percent vegetated area for the runnel treatment for each site
 
 
@@ -1900,133 +2311,7 @@ Timeline.Runnel$Runnel_Install <- as.character(Timeline.Runnel$Runnel_Install)
 
 
 
-#Step 2 - UVVR Graph for the Tidesheds Averaged with UVVR scores < 1.5
-
-
-UVVR.Runnel.Graph <- ggplot() +   
-  geom_vline(xintercept = 0, size = 1, colour = "grey", 
-             linetype = "dashed") + 
-  geom_errorbar(data = Timeline.Runnel,
-                aes(x = Timeline, ymin = UVVR - UVVR.se, ymax = UVVR + UVVR.se,
-                    colour = Runnel_Install), size = 0.75) +
-  geom_point(data = Timeline.Runnel,
-             aes(x = Timeline, y = UVVR, fill = Runnel_Install), 
-             shape = 21, size = 5) +
-  labs(x = "Age Relative to Restoration (yrs)", 
-       y = "Average UVVR SCore") + 
-  scale_x_continuous(limits = c(-10.5, 8.5), 
-                     breaks = seq(-10, 8, 2)) + 
-  scale_y_continuous(limits = c(0, 1.5), 
-                     breaks = seq(0, 1.5, 0.3)) +
-  theme_bw() +
-  theme(
-    legend.position = "none",
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.title = element_text(size = 15, colour = "black"),
-    axis.text = element_text(size = 15, colour = "black"),
-    strip.text = element_text(size = 16, colour = "black")) +
-  facet_wrap(~Site, ncol = 4, scales = "free")
-
-
-UVVR.Runnel.Graph
-
-
-
-#Step 3 - Percent Vegetated Area for the Tidesheds Averaged wtih UVVR scores < 1.5
-
-
-Veg.Runnel.Graph <- ggplot() +   
-  geom_vline(xintercept = 0, size = 1, colour = "grey", 
-             linetype = "dashed") + 
-  geom_errorbar(data = Timeline.Runnel,
-                aes(x = Timeline, ymin = UVVR - UVVR.se, ymax = UVVR + UVVR.se,
-                    colour = Runnel_Install), size = 0.75) +
-  geom_point(data = Timeline.Runnel,
-             aes(x = Timeline, y = UVVR, fill = Runnel_Install), 
-             shape = 21, size = 5) +
-  labs(x = "Age Relative to Restoration (yrs)", 
-       y = "Average UVVR SCore") + 
-  scale_x_continuous(limits = c(-10.5, 8.5), 
-                     breaks = seq(-10, 8, 2)) + 
-  scale_y_continuous(limits = c(0, 100), 
-                     breaks = seq(0, 100, 25)) +
-  theme_bw() +
-  theme(
-    legend.position = "none",
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.title = element_text(size = 15, colour = "black"),
-    axis.text = element_text(size = 15, colour = "black"),
-    strip.text = element_text(size = 16, colour = "black")) +
-  facet_wrap(~Site, ncol = 4)
-
-
-Veg.Runnel.Graph
-
-
-
-#Page 2- Create a timeline of runnel treatments for each site over the restoration time frame for
-  #UVVR scores with UVVR scores > 1.5 and graph
-
-#Step 1 - Create the timeline of runnel treatments of the restoration time frame with tidesheds averaged
-#for similar runnel install dates within each site
-
-
-Timeline.Runnel2 <- Database %>%
-  filter(Treatment == "Runnel") %>%
-  group_by(Site, Runnel_Install, Timeline) %>%
-  summarise(
-    UVVR.m = sum(UVVR, na.rm = TRUE),
-    UVVR.se = sd(UVVR, na.rm = TRUE)/sqrt(n()),
-    
-    Veg_Percent.m = sum(Veg_Percent, na.rm = TRUE),
-    Veg_Percent.se = sd(Veg_Percent, na.rm = TRUE)/sqrt(n())) %>%
-  ungroup() %>%
-  rename(
-    UVVR = UVVR.m,
-    Veg_Percent = Veg_Percent.m) %>%
-  filter(Site == "Plum Island" | Site == "Potters Pond" | Site == "Weekapaug Foundation" | Site == "Winnapaug Town Land")  
-
-Timeline.Runnel2$Runnel_Install <- as.character(Timeline.Runnel2$Runnel_Install)
-
-
-#Step 2 - UVVR Graph for the Tidesheds Averaged with UVVR scores > 1.5
-
-
-UVVR.Runnel.Graph <- ggplot() +   
-  geom_vline(xintercept = 0, size = 1, colour = "grey", 
-             linetype = "dashed") + 
-  geom_errorbar(data = Timeline.Runnel2,
-                aes(x = Timeline, ymin = UVVR - UVVR.se, ymax = UVVR + UVVR.se,
-                    colour = Runnel_Install), size = 0.75) +
-  geom_point(data = Timeline.Runnel2,
-             aes(x = Timeline, y = UVVR, fill = Runnel_Install), 
-             shape = 21, size = 5) +
-  labs(x = "Age Relative to Restoration (yrs)", 
-       y = "Average UVVR Score") + 
-  scale_x_continuous(limits = c(-10.5, 8.5), 
-                     breaks = seq(-10, 8, 2)) + 
-  scale_y_continuous(limits = c(0, 12), 
-                     breaks = seq(0, 12, 2)) +
-  theme_bw() +
-  theme(
-    legend.position = "none",
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.title = element_text(size = 15, colour = "black"),
-    axis.text = element_text(size = 15, colour = "black"),
-    strip.text = element_text(size = 16, colour = "black")) +
-  facet_wrap(~Site, ncol = 2)
-
-
-UVVR.Runnel.Graph
-
-
-
-
-
-#Page 2 - Create a timeline of runnel treatments for each site over the restoration timeframe for
+#Step 2 - Create a timeline of runnel treatments for each site over the restoration timeframe for
   #UVVR scores with UVVR scores < 1.5 & Facet Graph with tidesheds individually shown
 
   #For the UVVR Graph, the sites are divided between those that have UVVR scores of < 1.5 (Timeline.Runnel)
@@ -2034,9 +2319,7 @@ UVVR.Runnel.Graph
   #The tidesheds that contribute to such high UVVR scores are those that are entirely pools at some point
   #Sites are: Plum Island, Potters Pond, Weekapaug Foundation, and Winnapaug Town Land
 
-#First, we will create the UVVR Graphs for the sites with UVVR scores of < 1.5
-
-#Step 1 - Create the timeline of runnel treatments of the restoration timeframe with tidesheds individually
+# Create the timeline of runnel treatments of the restoration time frame with tidesheds individually
   # shown for similar runnel install dates within each site
 
 
@@ -2078,47 +2361,5 @@ UVVR.Runnel.Graph <- ggplot() +
 
 UVVR.Runnel.Graph
 
-
-
-
-#Page 4 - Create a timeline of runnel treatments for each site over the restoration time frame for
-  #UVVR scores with UVVR scores > 1.5 and graph with tidesheds individually shown
-
-#Step 1 - Create the timeline of runnel treatments of the restoration time frame with tidesheds 
-  # individually for similar runnel install dates within each site
-
-
-Timeline.Runnel2 <- Database %>%
-  filter(Treatment == "Runnel") %>%
-    filter(Site == "Plum Island" | Site == "Potters Pond" | Site == "Weekapaug Foundation" | Site == "Winnapaug Town Land")  
-
-Timeline.Runnel2$Tideshed <- as.character(Timeline.Runnel2$Tideshed)
-
-
-#Step 2 - UVVR Graph for the Tidesheds Averaged with UVVR scores > 1.5
-
-
-UVVR.Runnel.Graph <- ggplot() +   
-  geom_vline(xintercept = 0, size = 1, colour = "grey", 
-             linetype = "dashed") + 
-  geom_point(data = Timeline.Runnel2,
-             aes(x = Timeline, y = UVVR, fill = Tideshed), 
-             shape = 21, size = 5, position = 'jitter') +
-  labs(x = "Age Relative to Restoration (yrs)", 
-       y = "Average UVVR SCore") + 
-  scale_x_continuous(limits = c(-10.5, 8.5), 
-                     breaks = seq(-10, 8, 2)) + 
-  theme_bw() +
-  theme(
-    legend.position = "none",
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.title = element_text(size = 15, colour = "black"),
-    axis.text = element_text(size = 15, colour = "black"),
-    strip.text = element_text(size = 16, colour = "black")) +
-  facet_wrap(~Site, ncol = 2, scales = "free")
-
-
-UVVR.Runnel.Graph
 
 
