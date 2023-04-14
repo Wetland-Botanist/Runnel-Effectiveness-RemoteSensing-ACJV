@@ -866,7 +866,7 @@ plot(UVVR.Spline)
 qqnorm(residuals(UVVR.Spline))
 
 
-
+summary(UVVR.Spline)
 
 #Page 2 - Export the Spline Mixed Model Model Summaries
 
@@ -1564,7 +1564,7 @@ Spline.preds$Treatment <- factor(Spline.preds$Treatment,
                                  levels = c("No Action", "Reference",  "Runnel"))
 
 Spline.preds$BaselineCondition <- factor(Spline.preds$BaselineCondition,
-                                 levels = c("Healthy", "Degraded"))
+                                 levels = c("Degraded", "Healthy"))
 
 Health.Veg <- ggplot() + 
   geom_vline(xintercept = 0, size = 1, colour = "grey", 
