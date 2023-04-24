@@ -2308,8 +2308,9 @@ Timeline.Runnel$Runnel_Install <- as.character(Timeline.Runnel$Runnel_Install)
 
 Timeline.Runnel <- Database %>%
   mutate(Site_Tideshed = paste(Site, Tideshed, sep = " - ")) %>%
-  filter(Treatment == "Runnel", State == "RI") %>%
-    filter(Site != "Plum Island" & Site != "Potters Pond" & Site != "Weekapaug Foundation" & Site != "Winnapaug Town Land")
+  filter(Treatment == "Runnel") %>%
+    filter(Site_Tideshed == "Plum Island - 8" | Site_Tideshed == "Potters Pond - 3" | 
+           Site_Tideshed == "Weekapaug Foundation - 7" |  Site_Tideshed == "Winnapaug Town Land - 21")
 
 
 
@@ -2324,25 +2325,29 @@ UVVR.Runnel.Graph <- ggplot() +
              linetype = "dashed") + 
   geom_point(data = Timeline.Runnel,
              aes(x = Timeline, y = UVVR, fill = Site), 
-             shape = 21, size = 5, position = 'jitter') +
+             shape = 21, size = 5.5, position = 'jitter') +
   labs(x = "Age Relative to Restoration (yrs)", 
        y = "Average UVVR Score") + 
   scale_x_continuous(limits = c(-10.5, 8.5), 
                      breaks = seq(-10, 8, 2)) + 
-  scale_y_continuous(limits = c(0, 1.5), 
-                     breaks = seq(0, 1.5, 0.3)) +
   theme_bw() +
   theme(
     legend.position = "none",
     panel.grid.major.x = element_blank(),
     panel.grid.minor.x = element_blank(),
-    axis.title = element_text(size = 15, colour = "black"),
-    axis.text = element_text(size = 15, colour = "black"),
+    axis.title = element_text(size = 20, colour = "black"),
+    axis.text = element_text(size = 20, colour = "black"),
     strip.text = element_text(size = 16, colour = "black")) +
-  facet_wrap(~Site_Tideshed)
+  facet_wrap_paginate(~Site_Tideshed, scales = "free",
+                      ncol = 4, nrow = 3, page = 1)
 
 
 UVVR.Runnel.Graph
+
+
+ggsave(UVVR.Runnel.Graph, height = 9, width = 16, dpi = 300,
+       limitsize = FALSE, units = "in",
+       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Runnel_Tidesheds_page7.jpg")
 
 
 
