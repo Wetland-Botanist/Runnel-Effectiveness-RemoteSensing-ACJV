@@ -100,8 +100,6 @@ library(purrr)
 library(broom.mixed)
 library(modelr)
 
-
-
 #Data Visualization Packages
 library(patchwork)
 library(gridExtra)
@@ -2306,30 +2304,87 @@ Timeline.Runnel$Runnel_Install <- as.character(Timeline.Runnel$Runnel_Install)
   # shown for similar runnel install dates within each site
 
 
-Timeline.Runnel <- Database %>%
+Timeline.Tidesheds <- Database %>%
   mutate(Site_Tideshed = paste(Site, Tideshed, sep = " - ")) %>%
-  filter(Treatment == "Runnel") %>%
-    filter(Site_Tideshed == "Plum Island - 8" | Site_Tideshed == "Potters Pond - 3" | 
-           Site_Tideshed == "Weekapaug Foundation - 7" |  Site_Tideshed == "Winnapaug Town Land - 21")
+    filter(Site_Tideshed != "Plum Island - 8" & Site_Tideshed != "Potters Pond - 3" & 
+           Site_Tideshed != "Weekapaug Foundation - 7" &  Site_Tideshed != "Winnapaug Town Land - 21" &
+             Site_Tideshed != "Winnapaug Town Land - 22" & Site_Tideshed != "Moody Marsh - 11")
 
 
 
 #Step 2 -  UVVR Graph for the Tidesheds Individually shown with UVVR scores > 1.5
 
 
-Timeline.Runnel$Tideshed_ID <- as.character(Timeline.Runnel$Tideshed_ID)
+Timeline.Tidesheds$Tideshed_ID <- as.character(Timeline.Tidesheds$Tideshed_ID)
 
 
-UVVR.Runnel.Graph <- ggplot() +   
+UVVR.Tidesheds <- ggplot() +   
   geom_vline(xintercept = 0, size = 1, colour = "grey", 
              linetype = "dashed") + 
-  geom_point(data = Timeline.Runnel,
-             aes(x = Timeline, y = UVVR, fill = Site), 
-             shape = 21, size = 5.5, position = 'jitter') +
+  geom_point(data = Timeline.Tidesheds,
+             aes(x = Timeline, y = UVVR, fill = Treatment), 
+             shape = 21, size = 5.5) +
   labs(x = "Age Relative to Restoration (yrs)", 
        y = "Average UVVR Score") + 
   scale_x_continuous(limits = c(-10.5, 8.5), 
-                     breaks = seq(-10, 8, 2)) + 
+                     breaks = seq(-10, 8, 2)) +
+  scale_y_continuous(limits = c(0, 1.0),
+                     breaks = seq(0, 1.0, 0.25)) +
+  scale_fill_viridis("viridis", discrete = TRUE) + 
+  
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title = element_text(size = 20, colour = "black"),
+    axis.text = element_text(size = 20, colour = "black"),
+    strip.text = element_text(size = 16, colour = "black")) +
+  facet_wrap_paginate(~Site_Tideshed, scales = "free",
+                      ncol = 4, nrow = 3, page = 16)
+
+
+UVVR.Tidesheds
+
+ggsave(UVVR.Tidesheds, height = 9, width = 16, dpi = 300,
+       limitsize = FALSE, units = "in",
+       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Runnel_Tidesheds_page16.jpg")
+
+
+
+#Page 1 - Graph the tidesheds with UVVR scores > 1.0
+
+#Lastly, there are a handful of sites with UVVR scores outside of the typical boundary of 0 - 1.0, so we will graph
+  #these separately and allow for free scaling of the y-axis. To accomplish this, we will simply remove the
+  #the scale_x_continuous() function of the ggplot
+
+
+Timeline.Tidesheds <- Database %>%
+  mutate(Site_Tideshed = paste(Site, Tideshed, sep = " - ")) %>%
+  filter(Site_Tideshed == "Plum Island - 8" | Site_Tideshed == "Potters Pond - 3" | 
+           Site_Tideshed == "Weekapaug Foundation - 7" |  Site_Tideshed == "Winnapaug Town Land - 21" |
+           Site_Tideshed == "Winnapaug Town Land - 22" | Site_Tideshed == "Moody Marsh - 11")
+
+
+
+#Step 2 -  UVVR Graph for the Tidesheds Individually shown with UVVR scores > 1.5
+
+
+Timeline.Tidesheds$Tideshed_ID <- as.character(Timeline.Tidesheds$Tideshed_ID)
+
+
+UVVR.Tidesheds <- ggplot() +   
+  geom_vline(xintercept = 0, size = 1, colour = "grey", 
+             linetype = "dashed") + 
+  geom_point(data = Timeline.Tidesheds,
+             aes(x = Timeline, y = UVVR, fill = Treatment), 
+             shape = 21, size = 5.5) +
+  labs(x = "Age Relative to Restoration (yrs)", 
+       y = "Average UVVR Score") + 
+  scale_x_continuous(limits = c(-10.5, 8.5), 
+                     breaks = seq(-10, 8, 2)) +
+  scale_fill_viridis("viridis", discrete = TRUE) + 
+  
   theme_bw() +
   theme(
     legend.position = "none",
@@ -2342,12 +2397,11 @@ UVVR.Runnel.Graph <- ggplot() +
                       ncol = 4, nrow = 3, page = 1)
 
 
-UVVR.Runnel.Graph
+UVVR.Tidesheds
 
-
-ggsave(UVVR.Runnel.Graph, height = 9, width = 16, dpi = 300,
+ggsave(UVVR.Tidesheds, height = 9, width = 16, dpi = 300,
        limitsize = FALSE, units = "in",
-       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Runnel_Tidesheds_page7.jpg")
+       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Runnel_Tidesheds_page17.jpg")
 
 
 
