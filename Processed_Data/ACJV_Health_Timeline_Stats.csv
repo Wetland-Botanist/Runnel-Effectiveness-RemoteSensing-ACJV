@@ -1,0 +1,151 @@
+"","Treatment","Timeline","BaselineCondition","Metric","Count"
+"1","No Action",-10,"Degraded","Site",4
+"2","No Action",-10,"Healthy","Site",1
+"3","No Action",-9,"Degraded","Site",5
+"4","No Action",-9,"Healthy","Site",3
+"5","No Action",-8,"Degraded","Site",4
+"6","No Action",-8,"Healthy","Site",1
+"7","No Action",-7,"Degraded","Site",6
+"8","No Action",-7,"Healthy","Site",3
+"9","No Action",-6,"Degraded","Site",7
+"10","No Action",-6,"Healthy","Site",3
+"11","No Action",-5,"Degraded","Site",8
+"12","No Action",-5,"Healthy","Site",4
+"13","No Action",-4,"Degraded","Site",7
+"14","No Action",-4,"Healthy","Site",4
+"15","No Action",-3,"Degraded","Site",7
+"16","No Action",-3,"Healthy","Site",3
+"17","No Action",-2,"Degraded","Site",7
+"18","No Action",-2,"Healthy","Site",5
+"19","No Action",-1,"Degraded","Site",8
+"20","No Action",-1,"Healthy","Site",3
+"21","No Action",0,"Degraded","Site",6
+"22","No Action",0,"Healthy","Site",5
+"23","No Action",1,"Degraded","Site",5
+"24","No Action",1,"Healthy","Site",2
+"25","No Action",2,"Degraded","Site",4
+"26","No Action",2,"Healthy","Site",4
+"27","No Action",3,"Degraded","Site",5
+"28","No Action",3,"Healthy","Site",2
+"29","No Action",4,"Degraded","Site",3
+"30","No Action",4,"Healthy","Site",2
+"31","No Action",5,"Degraded","Site",3
+"32","No Action",5,"Healthy","Site",3
+"33","No Action",6,"Degraded","Site",2
+"34","No Action",6,"Healthy","Site",1
+"35","No Action",7,"Degraded","Site",1
+"36","No Action",7,"Healthy","Site",2
+"37","No Action",8,"Degraded","Site",1
+"38","No Action",8,"Healthy","Site",1
+"39","Runnel",-10,"Degraded","Site",3
+"40","Runnel",-10,"Healthy","Site",1
+"41","Runnel",-9,"Degraded","Site",4
+"42","Runnel",-9,"Healthy","Site",4
+"43","Runnel",-8,"Degraded","Site",3
+"44","Runnel",-8,"Healthy","Site",1
+"45","Runnel",-7,"Degraded","Site",5
+"46","Runnel",-7,"Healthy","Site",6
+"47","Runnel",-6,"Degraded","Site",5
+"48","Runnel",-6,"Healthy","Site",4
+"49","Runnel",-5,"Degraded","Site",7
+"50","Runnel",-5,"Healthy","Site",7
+"51","Runnel",-4,"Degraded","Site",6
+"52","Runnel",-4,"Healthy","Site",5
+"53","Runnel",-3,"Degraded","Site",7
+"54","Runnel",-3,"Healthy","Site",5
+"55","Runnel",-2,"Degraded","Site",7
+"56","Runnel",-2,"Healthy","Site",6
+"57","Runnel",-1,"Degraded","Site",7
+"58","Runnel",-1,"Healthy","Site",5
+"59","Runnel",0,"Degraded","Site",6
+"60","Runnel",0,"Healthy","Site",5
+"61","Runnel",1,"Degraded","Site",6
+"62","Runnel",1,"Healthy","Site",4
+"63","Runnel",2,"Degraded","Site",4
+"64","Runnel",2,"Healthy","Site",4
+"65","Runnel",3,"Degraded","Site",5
+"66","Runnel",3,"Healthy","Site",1
+"67","Runnel",4,"Degraded","Site",4
+"68","Runnel",4,"Healthy","Site",4
+"69","Runnel",5,"Degraded","Site",2
+"70","Runnel",5,"Healthy","Site",3
+"71","Runnel",6,"Degraded","Site",2
+"72","Runnel",6,"Healthy","Site",1
+"73","Runnel",7,"Degraded","Site",2
+"74","Runnel",7,"Healthy","Site",1
+"75","Runnel",8,"Degraded","Site",1
+"76","No Action",-10,"Degraded","Tideshed",4
+"77","No Action",-10,"Healthy","Tideshed",2
+"78","No Action",-9,"Degraded","Tideshed",10
+"79","No Action",-9,"Healthy","Tideshed",7
+"80","No Action",-8,"Degraded","Tideshed",6
+"81","No Action",-8,"Healthy","Tideshed",2
+"82","No Action",-7,"Degraded","Tideshed",17
+"83","No Action",-7,"Healthy","Tideshed",7
+"84","No Action",-6,"Degraded","Tideshed",11
+"85","No Action",-6,"Healthy","Tideshed",7
+"86","No Action",-5,"Degraded","Tideshed",27
+"87","No Action",-5,"Healthy","Tideshed",9
+"88","No Action",-4,"Degraded","Tideshed",11
+"89","No Action",-4,"Healthy","Tideshed",8
+"90","No Action",-3,"Degraded","Tideshed",29
+"91","No Action",-3,"Healthy","Tideshed",4
+"92","No Action",-2,"Degraded","Tideshed",13
+"93","No Action",-2,"Healthy","Tideshed",12
+"94","No Action",-1,"Degraded","Tideshed",30
+"95","No Action",-1,"Healthy","Tideshed",5
+"96","No Action",0,"Degraded","Tideshed",17
+"97","No Action",0,"Healthy","Tideshed",8
+"98","No Action",1,"Degraded","Tideshed",25
+"99","No Action",1,"Healthy","Tideshed",3
+"100","No Action",2,"Degraded","Tideshed",11
+"101","No Action",2,"Healthy","Tideshed",7
+"102","No Action",3,"Degraded","Tideshed",22
+"103","No Action",3,"Healthy","Tideshed",3
+"104","No Action",4,"Degraded","Tideshed",14
+"105","No Action",4,"Healthy","Tideshed",2
+"106","No Action",5,"Degraded","Tideshed",11
+"107","No Action",5,"Healthy","Tideshed",6
+"108","No Action",6,"Degraded","Tideshed",10
+"109","No Action",6,"Healthy","Tideshed",2
+"110","No Action",7,"Degraded","Tideshed",7
+"111","No Action",7,"Healthy","Tideshed",2
+"112","No Action",8,"Degraded","Tideshed",8
+"113","No Action",8,"Healthy","Tideshed",1
+"114","Runnel",-10,"Degraded","Tideshed",5
+"115","Runnel",-10,"Healthy","Tideshed",1
+"116","Runnel",-9,"Degraded","Tideshed",13
+"117","Runnel",-9,"Healthy","Tideshed",8
+"118","Runnel",-8,"Degraded","Tideshed",6
+"119","Runnel",-8,"Healthy","Tideshed",1
+"120","Runnel",-7,"Degraded","Tideshed",19
+"121","Runnel",-7,"Healthy","Tideshed",13
+"122","Runnel",-6,"Degraded","Tideshed",10
+"123","Runnel",-6,"Healthy","Tideshed",7
+"124","Runnel",-5,"Degraded","Tideshed",22
+"125","Runnel",-5,"Healthy","Tideshed",14
+"126","Runnel",-4,"Degraded","Tideshed",11
+"127","Runnel",-4,"Healthy","Tideshed",10
+"128","Runnel",-3,"Degraded","Tideshed",30
+"129","Runnel",-3,"Healthy","Tideshed",9
+"130","Runnel",-2,"Degraded","Tideshed",9
+"131","Runnel",-2,"Healthy","Tideshed",14
+"132","Runnel",-1,"Degraded","Tideshed",30
+"133","Runnel",-1,"Healthy","Tideshed",8
+"134","Runnel",0,"Degraded","Tideshed",11
+"135","Runnel",0,"Healthy","Tideshed",11
+"136","Runnel",1,"Degraded","Tideshed",20
+"137","Runnel",1,"Healthy","Tideshed",6
+"138","Runnel",2,"Degraded","Tideshed",10
+"139","Runnel",2,"Healthy","Tideshed",10
+"140","Runnel",3,"Degraded","Tideshed",17
+"141","Runnel",3,"Healthy","Tideshed",1
+"142","Runnel",4,"Degraded","Tideshed",8
+"143","Runnel",4,"Healthy","Tideshed",8
+"144","Runnel",5,"Degraded","Tideshed",11
+"145","Runnel",5,"Healthy","Tideshed",6
+"146","Runnel",6,"Degraded","Tideshed",3
+"147","Runnel",6,"Healthy","Tideshed",1
+"148","Runnel",7,"Degraded","Tideshed",2
+"149","Runnel",7,"Healthy","Tideshed",3
+"150","Runnel",8,"Degraded","Tideshed",10

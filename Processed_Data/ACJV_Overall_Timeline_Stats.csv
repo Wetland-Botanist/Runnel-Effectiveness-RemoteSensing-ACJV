@@ -1,0 +1,115 @@
+"","Treatment","Timeline","Metric","Count"
+"1","No Action",-10,"Site",4
+"2","No Action",-9,"Site",5
+"3","No Action",-8,"Site",4
+"4","No Action",-7,"Site",6
+"5","No Action",-6,"Site",8
+"6","No Action",-5,"Site",8
+"7","No Action",-4,"Site",9
+"8","No Action",-3,"Site",7
+"9","No Action",-2,"Site",9
+"10","No Action",-1,"Site",8
+"11","No Action",0,"Site",8
+"12","No Action",1,"Site",5
+"13","No Action",2,"Site",6
+"14","No Action",3,"Site",5
+"15","No Action",4,"Site",4
+"16","No Action",5,"Site",4
+"17","No Action",6,"Site",2
+"18","No Action",7,"Site",2
+"19","No Action",8,"Site",1
+"20","Reference",-10,"Site",4
+"21","Reference",-9,"Site",5
+"22","Reference",-8,"Site",4
+"23","Reference",-7,"Site",7
+"24","Reference",-6,"Site",8
+"25","Reference",-5,"Site",9
+"26","Reference",-4,"Site",9
+"27","Reference",-3,"Site",8
+"28","Reference",-2,"Site",10
+"29","Reference",-1,"Site",9
+"30","Reference",0,"Site",9
+"31","Reference",1,"Site",7
+"32","Reference",2,"Site",6
+"33","Reference",3,"Site",5
+"34","Reference",4,"Site",6
+"35","Reference",5,"Site",5
+"36","Reference",6,"Site",2
+"37","Reference",7,"Site",2
+"38","Reference",8,"Site",1
+"39","Runnel",-10,"Site",4
+"40","Runnel",-9,"Site",5
+"41","Runnel",-8,"Site",4
+"42","Runnel",-7,"Site",7
+"43","Runnel",-6,"Site",8
+"44","Runnel",-5,"Site",9
+"45","Runnel",-4,"Site",9
+"46","Runnel",-3,"Site",8
+"47","Runnel",-2,"Site",10
+"48","Runnel",-1,"Site",9
+"49","Runnel",0,"Site",9
+"50","Runnel",1,"Site",7
+"51","Runnel",2,"Site",6
+"52","Runnel",3,"Site",5
+"53","Runnel",4,"Site",6
+"54","Runnel",5,"Site",5
+"55","Runnel",6,"Site",2
+"56","Runnel",7,"Site",2
+"57","Runnel",8,"Site",1
+"58","No Action",-10,"Tideshed",6
+"59","No Action",-9,"Tideshed",17
+"60","No Action",-8,"Tideshed",8
+"61","No Action",-7,"Tideshed",24
+"62","No Action",-6,"Tideshed",18
+"63","No Action",-5,"Tideshed",36
+"64","No Action",-4,"Tideshed",19
+"65","No Action",-3,"Tideshed",33
+"66","No Action",-2,"Tideshed",25
+"67","No Action",-1,"Tideshed",35
+"68","No Action",0,"Tideshed",25
+"69","No Action",1,"Tideshed",28
+"70","No Action",2,"Tideshed",18
+"71","No Action",3,"Tideshed",25
+"72","No Action",4,"Tideshed",16
+"73","No Action",5,"Tideshed",17
+"74","No Action",6,"Tideshed",12
+"75","No Action",7,"Tideshed",9
+"76","No Action",8,"Tideshed",9
+"77","Reference",-10,"Tideshed",5
+"78","Reference",-9,"Tideshed",13
+"79","Reference",-8,"Tideshed",6
+"80","Reference",-7,"Tideshed",25
+"81","Reference",-6,"Tideshed",16
+"82","Reference",-5,"Tideshed",28
+"83","Reference",-4,"Tideshed",17
+"84","Reference",-3,"Tideshed",23
+"85","Reference",-2,"Tideshed",20
+"86","Reference",-1,"Tideshed",23
+"87","Reference",0,"Tideshed",17
+"88","Reference",1,"Tideshed",18
+"89","Reference",2,"Tideshed",13
+"90","Reference",3,"Tideshed",7
+"91","Reference",4,"Tideshed",14
+"92","Reference",5,"Tideshed",11
+"93","Reference",6,"Tideshed",3
+"94","Reference",7,"Tideshed",2
+"95","Reference",8,"Tideshed",2
+"96","Runnel",-10,"Tideshed",6
+"97","Runnel",-9,"Tideshed",21
+"98","Runnel",-8,"Tideshed",7
+"99","Runnel",-7,"Tideshed",32
+"100","Runnel",-6,"Tideshed",17
+"101","Runnel",-5,"Tideshed",36
+"102","Runnel",-4,"Tideshed",21
+"103","Runnel",-3,"Tideshed",39
+"104","Runnel",-2,"Tideshed",23
+"105","Runnel",-1,"Tideshed",38
+"106","Runnel",0,"Tideshed",22
+"107","Runnel",1,"Tideshed",26
+"108","Runnel",2,"Tideshed",20
+"109","Runnel",3,"Tideshed",18
+"110","Runnel",4,"Tideshed",16
+"111","Runnel",5,"Tideshed",17
+"112","Runnel",6,"Tideshed",4
+"113","Runnel",7,"Tideshed",5
+"114","Runnel",8,"Tideshed",10

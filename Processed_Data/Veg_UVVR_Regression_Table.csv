@@ -1,0 +1,5 @@
+"","effect","group","term","estimate","std.error","statistic","df","p.value"
+"1","fixed",NA,"(Intercept)",-0.206484764579658,0.371239736573043,-0.556203294630426,14.3774275218497,0.586624735405402
+"2","fixed",NA,"UVVR.change",-39.1135623580578,1.72739755027072,-22.6430576747824,142.101753644453,5.41741518984904e-49
+"3","ran_pars","Site","sd__(Intercept)",0.857729920632445,NA,NA,NA,NA
+"4","ran_pars","Residual","sd__Observation",4.07073229716114,NA,NA,NA,NA

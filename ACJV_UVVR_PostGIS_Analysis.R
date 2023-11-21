@@ -105,6 +105,7 @@ library(patchwork)
 library(gridExtra)
 library(drc)
 library(ggfortify)
+library(ggforce)
 library(ggplot2)
 library(viridis)
 library(mgcv)
@@ -121,7 +122,7 @@ library(ggeffects)
 
 set.seed(1009)
 
-setwd("E:/Coastal Habitat Restoration Team/ACJV Sites - RI_Mass_Maine/Data Analysis/ACJV_UVVR_NewEngland")
+setwd("D:/Coastal Habitat Restoration Team/ACJV Sites - RI_Mass_Maine/Data Analysis/ACJV_UVVR_NewEngland")
 
 
 
@@ -379,7 +380,7 @@ ungroup()
 
 Database <- filter(Database, Treatment != "Ditch Remediation")
 
-write.csv(Database, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\ACJV_Overall_Database.csv")
+write.csv(Database, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\ACJV_Overall_Database.csv")
 
 #Remove the UVVR & Veg Database data frame, since we no longer have any use for it
 rm(Database.UVVR, Database.Veg)
@@ -422,7 +423,7 @@ glimpse(Timeline.Metrics)
 
 #Export the Timeline Database
 
-write.csv(Timeline.Metrics, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\ACJV_Overall_Timeline.csv")
+write.csv(Timeline.Metrics, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\ACJV_Overall_Timeline.csv")
 
 
 
@@ -456,11 +457,10 @@ Timeline.Health <- Database %>%
 
 glimpse(Timeline.Health)
 
+
 #Export the Timeline Database
 
-write.csv(Timeline.Health, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\ACJV_Health_Timeline.csv")
-
-
+write.csv(Timeline.Health, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\ACJV_Health_Timeline.csv")
 
 
 Database.stats <- Database %>%
@@ -530,11 +530,11 @@ qqnorm(residuals(UVVR.Linear))
 
 #Page 2 - Export the Full Linear Model data frames
 
-write.csv(UVVR.Linear.glance, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Linear_glance.csv")
+write.csv(UVVR.Linear.glance, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Linear_glance.csv")
 
-write.csv(UVVR.Linear.tidy, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Linear_tidy.csv")
+write.csv(UVVR.Linear.tidy, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Linear_tidy.csv")
 
-write.csv(UVVR.Linear.anova, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Linear_anova.csv")
+write.csv(UVVR.Linear.anova, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Linear_anova.csv")
 
 rm(UVVR.Linear.glance, UVVR.Linear.tidy, UVVR.Linear.anova)
 
@@ -569,7 +569,7 @@ Linear.Slope <- Linear.preds %>%
   summarise(slope = (UVVR[which.max(Timeline)] - UVVR[which.min(Timeline)]) / (max(Timeline) - min(Timeline)) ) %>%
   ungroup()
 
-write.csv(Linear.Slope, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Linear_Slopes.csv")
+write.csv(Linear.Slope, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Linear_Slopes.csv")
 
 
 
@@ -673,6 +673,8 @@ Linear.Graph.UVVR
 UVVR.Spline <- lmer(UVVR ~ bs(Timeline, knots = 0, degree = 1) * Treatment + (1|Site) + (1|Tideshed_ID),
                     data = Database, na.action = na.omit)
 
+tidy(UVVR.Spline)
+
 Spline.tidy <- broom.mixed::tidy(UVVR.Spline)
 
 Spline.tidy
@@ -709,11 +711,11 @@ qqnorm(residuals(UVVR.Spline))
 
 #Page 2 - Export the Spline Mixed Model Model Summaries
 
-write.csv(Spline.glance, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_glance.csv")
+write.csv(Spline.glance, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_glance.csv")
 
-write.csv(Spline.tidy, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_tidy.csv")
+write.csv(Spline.tidy, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_tidy.csv")
 
-write.csv(Spline.anova, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_anova.csv")
+write.csv(Spline.anova, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_anova.csv")
 
 rm(Spline.glance, Spline.tidy, Spline.anova)
 
@@ -738,7 +740,7 @@ Spline.preds <- ggpredict(UVVR.Spline, terms = c("Timeline [all]", "Treatment [a
   mutate(conf.low = ifelse(conf.low < 0, 0, conf.low))
 
 
-#Page 4 - Calcualte the Slopes of the Spline Models with predicted values
+#Page 4 - Calculate the Slopes of the Spline Models with predicted values
 #Using the predicted mean values, the slopes of each treatment can be calculated pre- and post-restoration
 
 Spline.Slope <- Spline.preds %>%
@@ -748,7 +750,9 @@ Spline.Slope <- Spline.preds %>%
             slope.post = (UVVR[which(Timeline == max(Timeline))] - UVVR[which(Timeline == min(Timeline = 0))]) / (max(Timeline) - 0)) %>%
   ungroup()
 
-write.csv(Spline.Slope, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_Slopes.csv")
+Spline.Slope
+
+write.csv(Spline.Slope, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_Slopes.csv")
 
 
 # Page 5 - Graph the mixed Spline Model (without Ditch Remediation) with facet wrap function
@@ -774,7 +778,7 @@ Spline.Graph.UVVR <- ggplot() +
                 aes(x = Timeline, ymin = UVVR.avg - UVVR.se, ymax = UVVR.avg + UVVR.se,
                     colour = Treatment),
                 size = 1, width = 0.5) +
-  geom_point(data = filter(Timeline.Metrics),
+  geom_point(data = Timeline.Metrics,
              aes(x = Timeline, y = UVVR.avg, fill = Treatment), 
              shape = 21, size = 5.5) +
   labs(x = "Age Relative to Restoration (yrs)", 
@@ -782,7 +786,7 @@ Spline.Graph.UVVR <- ggplot() +
   scale_x_continuous(limits = c(-10.5, 8.5), 
                      breaks = seq(-10, 8, 2)) + 
   scale_y_continuous(limits = c(0, 1.0), 
-                     breaks = seq(0, 1.0, 0.2)) +
+                     breaks = seq(0, 1.0, 0.20)) +
   scale_fill_manual(values = wes_palette("FantasticFox1", n = 3)) + 
   scale_colour_manual(values = wes_palette("FantasticFox1", n = 3)) + 
   theme_bw() +
@@ -852,7 +856,7 @@ Spline.anova
 #Assumption 1 - Linearity
 #Plot residuals of the model and observed values
 
-plot(resid(UVVR.Spline), Database$UVVR)
+plot(resid(UVVR.Spline))
 
 
 #Assumption 2 - Homogeneity of Variance
@@ -868,11 +872,11 @@ summary(UVVR.Spline)
 
 #Page 2 - Export the Spline Mixed Model Model Summaries
 
-write.csv(Spline.glance, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_3way_glance.csv")
+write.csv(Spline.glance, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_3way_glance.csv")
 
-write.csv(Spline.tidy, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_3way_tidy.csv")
+write.csv(Spline.tidy, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_3way_tidy.csv")
 
-write.csv(Spline.anova, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_3way_anova.csv")
+write.csv(Spline.anova, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_3way_anova.csv")
 
 rm(Spline.glance, Spline.tidy, Spline.anova)
 
@@ -910,7 +914,7 @@ Spline.Slope <- Spline.preds %>%
 
 Spline.Slope
 
-write.csv(Spline.Slope, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_Slopes_Condition.csv")
+write.csv(Spline.Slope, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Spline_Slopes_Condition.csv")
 
 
 # Page 5 - Graph the mixed Spline Model (without Ditch Remediation) with facet wrap function
@@ -945,9 +949,9 @@ geom_vline(xintercept = 0, size = 1, colour = "grey",
   labs(x = "Age Relative to Restoration (yrs)", 
        y = "UVVR Score") + 
   scale_x_continuous(limits = c(-10.5, 8.5), 
-                     breaks = seq(-10, 8, 2)) + 
-  scale_y_continuous(limits = c(0, 1.25), 
-                     breaks = seq(0, 1.25, 0.25)) +
+                     breaks = seq(-10, 8.5, 2)) + 
+  scale_y_continuous(limits = c(0, 1.55), 
+                     breaks = seq(0, 1.5, 0.25)) +
   scale_fill_manual(values = c(wes_palette("FantasticFox1")[1], wes_palette("FantasticFox1")[3])) + 
   scale_colour_manual(values = c(wes_palette("FantasticFox1")[1], wes_palette("FantasticFox1")[3])) + 
   theme_bw() +
@@ -996,7 +1000,7 @@ Model.compare <- anova(UVVR.Linear.mod, UVVR.Spline)
 
 Model.compare
 
-write.csv(Model.compare,  "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_LikliehoodTest_Models.csv")
+write.csv(Model.compare,  "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_LikliehoodTest_Models.csv")
 
 
 #Page 2 - Determine if runnel restoration was applied to the most degraded tidesheds 
@@ -1022,7 +1026,7 @@ Tideshed.pre$Treatment <- factor(Tideshed.pre$Treatment,
                                  levels = c("No Action", "Reference", "Runnel"))
 
 
-write.csv(Tideshed.pre, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Veg_PreRestoration_Baseline.csv" )
+write.csv(Tideshed.pre, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Veg_PreRestoration_Baseline.csv" )
 
 
 #Next, for reporting purposes, the summary statistics will be calculated for the Vegetated Area and UVVR
@@ -1042,7 +1046,7 @@ Tideshed.pre.sum <- Tideshed.pre %>%
 Tideshed.pre.sum$Treatment <- factor(Tideshed.pre.sum$Treatment, 
                                      levels = c("No Action", "Reference", "Runnel"))
 
-write.csv(Tideshed.pre.sum, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Veg_PreRestoration_Baseline_SumStats.csv" )
+write.csv(Tideshed.pre.sum, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\UVVR_Veg_PreRestoration_Baseline_SumStats.csv" )
 
 
 
@@ -1097,8 +1101,6 @@ rm(pre.anova.tidy, Piece.Linear.Pre, Linear.Slope, Linear.preds)
 
 #Book 3: Vegetated Area Mixed Model Analysis
 
-#___________________________________________________________________________________________________________
-
 
 #CHAPTER 1 - MIXED MODEL LINEAR REGRESSIONS of Vegetated Area
 
@@ -1143,11 +1145,11 @@ qqnorm(residuals(Veg.Linear))
 
 #Page 2 - Export the Full Linear Model data frames
 
-write.csv(Veg.Linear.glance, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Linear_glance.csv")
+write.csv(Veg.Linear.glance, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Linear_glance.csv")
 
-write.csv(Veg.Linear.tidy, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Linear_tidy.csv")
+write.csv(Veg.Linear.tidy, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Linear_tidy.csv")
 
-write.csv(Veg.Linear.anova, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Linear_anova.csv")
+write.csv(Veg.Linear.anova, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Linear_anova.csv")
 
 rm(Veg.Linear.glance, Veg.Linear.tidy, Veg.Linear.anova)
 
@@ -1182,7 +1184,7 @@ ungroup()
 
 Linear.Slope
 
-write.csv(Linear.Slope, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Linear_Slopes.csv")
+write.csv(Linear.Slope, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Linear_Slopes.csv")
 
 
 
@@ -1244,13 +1246,7 @@ Linear.Graph
 
 ggsave(Linear.Graph, height = 12, width = 16, dpi = 600,
        limitsize = FALSE, units = "in",
-       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Linear_MixedModels_VegPercent.jpg")
-
-
-
-
-
-
+       filename = "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Linear_MixedModels_VegPercent.jpg")
 
 
 
@@ -1321,8 +1317,6 @@ plot(resid(Veg.Spline), Database$Veg_Percent)
 
 plot(Veg.Spline)
 
-
-
 #Assumption 3 - Residuals of the Model are Normally Distributed
 
 qqnorm(residuals(Veg.Spline))
@@ -1330,11 +1324,11 @@ qqnorm(residuals(Veg.Spline))
 
 #Page 2 - Export the Spline Mixed Model Model Summaries
 
-write.csv(Spline.glance, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_glance.csv")
+write.csv(Spline.glance, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_glance.csv")
 
-write.csv(Spline.tidy, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_tidy.csv")
+write.csv(Spline.tidy, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_tidy.csv")
 
-write.csv(Spline.anova, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_anova.csv")
+write.csv(Spline.anova, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_anova.csv")
 
 rm(Spline.glance, Spline.tidy, Spline.anova)
 
@@ -1369,7 +1363,7 @@ Spline.Slope <- Spline.preds %>%
 
 Spline.Slope
 
-write.csv(Spline.Slope, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Slopes.csv")
+write.csv(Spline.Slope, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Slopes.csv")
 
 
 # Page 5 - Graph the mixed Spline Model (without Ditch Remediation) with facet wrap function
@@ -1382,7 +1376,7 @@ write.csv(Spline.Slope, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_M
 Spline.preds$Treatment <- factor(Spline.preds$Treatment,
                                  levels = c("No Action", "Reference",  "Runnel"))
 
-Spline.Veg <- ggplot() + 
+Spline.Graph.Veg <- ggplot() + 
   geom_vline(xintercept = 0, size = 1, colour = "grey", 
              linetype = "dashed") + 
   geom_line(data = Spline.preds,
@@ -1394,7 +1388,7 @@ Spline.Veg <- ggplot() +
   geom_errorbar(data = Timeline.Metrics,
                 aes(x = Timeline, ymin = Veg_Percent.avg - Veg_Percent.se, 
                     ymax = Veg_Percent.avg + Veg_Percent.se,
-                    colour = BaselineCondition),
+                    colour = Treatment),
                 size = 1, width = 0.5) +
   geom_point(data = Timeline.Metrics,
              aes(x = Timeline, y = Veg_Percent.avg, fill = Treatment), 
@@ -1403,7 +1397,7 @@ Spline.Veg <- ggplot() +
        y = "Vegetated Area (%)") + 
   scale_x_continuous(limits = c(-10.5, 8.5), 
                      breaks = seq(-10, 8, 2)) + 
-  scale_y_continuous(limits = c(60, 105), 
+  scale_y_continuous(limits = c(55, 105), 
                      breaks = seq(60, 100, 10)) +
   scale_fill_manual(values = wes_palette("FantasticFox1", type = "discrete", n = 3)) + 
   scale_colour_manual(values = wes_palette("FantasticFox1", type = "discrete", n = 3)) + 
@@ -1429,7 +1423,7 @@ Spline.Graph
 
 ggsave(Spline.Graph, height = 12, width = 16, dpi = 600,
        limitsize = FALSE, units = "in",
-       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Spline_MixedModels_VegPercent.jpg")
+       filename = "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Spline_MixedModels_VegPercent.jpg")
 
 
 
@@ -1508,11 +1502,11 @@ qqnorm(residuals(Veg.Spline))
 
 #Page 2 - Export the Spline Mixed Model Model Summaries
 
-write.csv(Spline.glance, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Health_glance.csv")
+write.csv(Spline.glance, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Health_glance.csv")
 
-write.csv(Spline.tidy, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Health_tidy.csv")
+write.csv(Spline.tidy, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Health_tidy.csv")
 
-write.csv(Spline.anova, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Health_anova.csv")
+write.csv(Spline.anova, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Health_anova.csv")
 
 rm(Spline.glance, Spline.tidy, Spline.anova)
 
@@ -1548,7 +1542,7 @@ Spline.Slope <- Spline.preds %>%
 
 Spline.Slope
 
-write.csv(Spline.Slope, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Slopes_Health.csv")
+write.csv(Spline.Slope, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Spline_Slopes_Health.csv")
 
 
 # Page 5 - Graph the mixed Spline Model (without Ditch Remediation) with facet wrap function
@@ -1585,7 +1579,7 @@ Health.Veg <- ggplot() +
        y = "Vegetated Area (%)") + 
   scale_x_continuous(limits = c(-10.5, 8.5), 
                      breaks = seq(-10, 8, 2)) + 
-  scale_y_continuous(limits = c(60, 105), 
+  scale_y_continuous(limits = c(55, 105), 
                      breaks = seq(60, 100, 10)) +
   scale_fill_manual(values = c(wes_palette("FantasticFox1")[1], wes_palette("FantasticFox1")[3])) + 
   scale_colour_manual(values = c(wes_palette("FantasticFox1")[1], wes_palette("FantasticFox1")[3])) + 
@@ -1611,7 +1605,7 @@ Health.Graph
 
 ggsave(Health.Graph, height = 8, width = 16, dpi = 600,
        limitsize = FALSE, units = "in",
-       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Health_Graph_NoRef.jpg")
+       filename = "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Health_Graph_NoRef.jpg")
 
 
 
@@ -1655,7 +1649,7 @@ Model.compare <- anova(Veg.Linear.mod, Veg.Spline)
 
 Model.compare
 
-write.csv(Model.compare,  "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_LikliehoodTest_Models.csv")
+write.csv(Model.compare,  "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_LikliehoodTest_Models.csv")
 
 
 rm(Veg.Linear.mod, UVVR.Linear.mod, Model.compare)
@@ -1684,7 +1678,7 @@ PreRestoration.Veg.Graph <- ggplot() +
                size = 0.75) +
   labs(x = '',
        y = "Vegetated Area (%)") + 
-  scale_y_continuous(limits = c(-60, 100), breaks = seq(60, 100, 10)) +
+  scale_y_continuous(limits = c(60, 100), breaks = seq(60, 100, 10)) +
   theme_bw() +
   theme(
     legend.position = 'none',
@@ -1815,7 +1809,7 @@ rm("Database.Veg.Pre", "Database.Veg.Post")
 
 #Step 8: Export the Veg Gains/Losses Table to Excel
 
-write.csv(Veg.Gains.Losses, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Gains_Losses.csv")
+write.csv(Veg.Gains.Losses, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Gains_Losses.csv")
 
 
 #Page 4: Bar Graph of the Vegetated Gains and Losses 
@@ -1833,7 +1827,7 @@ Veg.Gains.Bar <- ggplot(Veg.Gains.Losses,
             position = position_dodge(0.9), 
             fontface ="bold", size = 6, colour = "black") +
   labs(x = "", y = "Change in Vegetated Area (ha)") +
-  scale_y_continuous(limits = c(-5, 5), breaks = seq(-5, 5, 1)) +
+  scale_y_continuous(limits = c(-5, 6), breaks = seq(-5, 6, 1)) +
   scale_fill_manual(values = wes_palette("FantasticFox1", n = 3)) + 
   theme_bw() +
   theme(
@@ -1876,7 +1870,7 @@ Veg.Gains.Losses.Site <- Veg.Gains.Losses.Site %>%
 
 #Step 8: Export the Veg Gains/Losses Table to Excel
 
-write.csv(Veg.Gains.Losses.Site, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Gains_Losses_Site.csv")
+write.csv(Veg.Gains.Losses.Site, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_Gains_Losses_Site.csv")
 
 
 
@@ -1938,11 +1932,11 @@ Change.preds <- ggpredict(UVVR.veg, c("UVVR.change"),
 #page 4 - Export the predict values of the regression and the statistical output of the regression
 
 
-write.csv(Change.preds, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_UVVR_Prediction.csv")
+write.csv(Change.preds, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_UVVR_Prediction.csv")
 
-write.csv(UVVR.veg.anova, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_UVVR_Regression.csv")
+write.csv(UVVR.veg.anova, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_UVVR_Regression.csv")
 
-write.csv(UVVR.veg.sum, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_UVVR_Regression_Table.csv")
+write.csv(UVVR.veg.sum, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_UVVR_Regression_Table.csv")
 
 
 #Page 4 - Graph the linear regression with ggplot()
@@ -1976,6 +1970,17 @@ UVVR.Veg.Figure <- ggplot() +
     strip.text = element_text(size = 17, colour = "black"))
 
 UVVR.Veg.Figure
+
+UVVR.Supp.Figure <- Veg.Gains.Bar + UVVR.Veg.Figure
+
+UVVR.Supp.Figure
+
+ggsave(UVVR.Supp.Figure, height = 8, width = 20, dpi = 600,
+       limitsize = FALSE, units = "in",
+       filename = "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\UVVR.Supp.Figure.jpg")
+
+
+
 
 rm(Change.preds, UVVR.veg.anova, UVVR.veg.glance, UVVR.veg.sum, Veg.Gains.Losses, 
    Veg.Gains.Losses.Site, Tideshed.pre, Tideshed.pre.sum, pre.anova.tidy, PreRestoration.Graph, PreRestoration.UVVR.Graph,
@@ -2057,7 +2062,7 @@ Database.Intl <- Database %>%
 ungroup()
 
 
-write.csv(Database.Intl, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_UVVR_InitialConditions_Dataset.csv")
+write.csv(Database.Intl, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Veg_UVVR_InitialConditions_Dataset.csv")
 
 
 
@@ -2087,11 +2092,11 @@ UVVR.PChange.Model.glance <- glance(UVVR.PChange.Model)
 UVVR.PChange.Model.glance
 
 
-write.csv(UVVR.PChange.Model.anova, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Percent_UVVR_PChange_tidy.csv")
+write.csv(UVVR.PChange.Model.anova, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Percent_UVVR_PChange_tidy.csv")
 
-write.csv(UVVR.PChange.Model.tidy, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Percent_UVVR_PChange_anova.csv")
+write.csv(UVVR.PChange.Model.tidy, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Percent_UVVR_PChange_anova.csv")
 
-write.csv(UVVR.PChange.Model.glance, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Percent_UVVR_PChange_glance.csv")
+write.csv(UVVR.PChange.Model.glance, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Percent_UVVR_PChange_glance.csv")
 
 rm(UVVR.PChange.Model.anova, UVVR.PChange.Model.tidy, UVVR.PChange.Model.glance)
 
@@ -2162,11 +2167,11 @@ Veg.PChange.Model.glance <- glance(Veg.PChange.Model)
 Veg.PChange.Model.glance
 
 
-write.csv(Veg.PChange.Model.anova, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Percent_Veg_PChange_tidy.csv")
+write.csv(Veg.PChange.Model.anova, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Percent_Veg_PChange_tidy.csv")
 
-write.csv(Veg.PChange.Model.tidy, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Percent_Veg_PChange_anova.csv")
+write.csv(Veg.PChange.Model.tidy, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Percent_Veg_PChange_anova.csv")
 
-write.csv(Veg.PChange.Model.glance, "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Percent_Veg_PChange_glance.csv")
+write.csv(Veg.PChange.Model.glance, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\Percent_Veg_PChange_glance.csv")
 
 rm(Veg.PChange.Model.anova, Veg.PChange.Model.glance, Veg.PChange.Model.tidy)
 
@@ -2230,7 +2235,7 @@ Stats.figure
 
 ggsave(Stats.figure, height = 10, width = 17, dpi = 600,
        limitsize = FALSE, units = "in",
-       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Stats_Compilation.jpg")
+       filename = "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Stats_Compilation.jpg")
 
 
 
@@ -2272,7 +2277,7 @@ rm(Veg.Change.Model.anova, Veg.Change.Model.anova, Veg.Change.Model.glance, Veg.
 
 Timeline.Runnel <- Database %>%
   filter(Treatment == "Runnel") %>%
-    group_by(State, Runnel_Install, Timeline, State) %>%
+    group_by(Site, Runnel_Install, Timeline, State) %>%
       summarise(
         UVVR.m = sum(UVVR, na.rm = TRUE),
         UVVR.se = sd(UVVR, na.rm = TRUE)/sqrt(n()),
@@ -2343,12 +2348,11 @@ UVVR.Tidesheds <- ggplot() +
   facet_wrap_paginate(~Site_Tideshed, scales = "free",
                       ncol = 4, nrow = 3, page = 16)
 
-
 UVVR.Tidesheds
 
 ggsave(UVVR.Tidesheds, height = 9, width = 16, dpi = 300,
        limitsize = FALSE, units = "in",
-       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Runnel_Tidesheds_page16.jpg")
+       filename = "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Runnel_Tidesheds_page16.jpg")
 
 
 
@@ -2401,7 +2405,173 @@ UVVR.Tidesheds
 
 ggsave(UVVR.Tidesheds, height = 9, width = 16, dpi = 300,
        limitsize = FALSE, units = "in",
-       filename = "E:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Runnel_Tidesheds_page17.jpg")
+       filename = "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Runnel_Tidesheds_page17.jpg")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Chapter 9: Overview of the distribution of tidesheds and sites within the the mixed models
+
+  # One question I had about the mixed models was the distribution of the number of tidesheds
+      # and sites for each date in the restoration timeline series
+  # For this chapter, I am simply just going to calculate and graph out the distributions
+
+# Step 1 - Look at the Treatment Model 
+
+# Determine the number of unique Sites and Tidesheds for each treatment at each date using dplyr
+
+Timeline.Metrics.stats <- Database %>%
+  group_by(Treatment, Timeline) %>%
+    summarise(Site.sum = length(unique(Site)),
+             Tideshed.sum = length(unique(Tideshed_ID))) %>%
+      rename(Site = Site.sum,
+         Tideshed = Tideshed.sum) %>%
+        gather(key = "Metric", value = "Count", Site, Tideshed)
+
+write.csv(Timeline.Health, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\ACJV_Overall_Timeline_Stats.csv")
+
+
+# Bar graph of the distribution for Sites and Tidesheds for each treatment
+
+Timeline.Metrics.stats$Treatment <- factor(Timeline.Metrics.stats$Treatment, levels = c("No Action", "Reference", "Runnel"))
+
+
+Treatment.Model.Metrics.Graph <- ggplot(Timeline.Metrics.stats, 
+                        aes(x = Timeline, y = Count, fill  = Treatment)) + 
+  geom_vline(xintercept = 0, colour = "grey", linetype = "dashed",
+             size = 2) + 
+  geom_bar(position = position_dodge(), stat = "identity", 
+           colour = "black", size = 1) +
+  geom_text(aes(label = Count, y = Count + 2.25), 
+            position = position_dodge(0.9), 
+            fontface ="bold", size = 4, colour = "black") +
+  labs(x = "", y = "Count") +
+  scale_x_continuous(limits = c(-10.5, 8.5), breaks = seq(-10, 8, 1)) +
+  scale_fill_manual(values = wes_palette("FantasticFox1", n = 3)) + 
+  theme_bw() +
+  theme(
+    legend.position = "none",
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title = element_text(size = 20, colour = "black"),
+    axis.text = element_text(size = 20, colour = "black"),
+    strip.text = element_text(size = 16, colour = "black"),
+    strip.background = element_blank(),
+    strip.placement = "outside") +
+  facet_wrap(Metric ~ Treatment,
+             nrow = 2, ncol = 3)
+
+Treatment.Model.Metrics.Graph
+
+ggsave(Treatment.Model.Metrics.Graph, height = 9, width = 20, dpi = 300,
+       limitsize = FALSE, units = "in",
+       filename = "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Timeline_Metrics_Distribution.jpg")
+
+
+
+#Step 3: Calculate the 'Condition' Model distribution of tidesheds and sites
+
+Timeline.Health.stats <- Database %>%
+  filter(Treatment != "Reference") %>%
+  group_by(Treatment, Timeline, BaselineCondition) %>%
+   summarise( Site.sum = length(unique(Site)),
+             Tideshed.sum = length(unique(Tideshed_ID))) %>%
+      rename(Site = Site.sum,
+         Tideshed = Tideshed.sum) %>%
+         gather(key = "Metric", value = "Count", Site, Tideshed)
+
+write.csv(Timeline.Health, "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R CSVs Analysis\\ACJV_Health_Timeline_Stats.csv")
+
+
+
+
+#Step 4: Bar Graph of the 'condition' model
+
+
+Timeline.Health.stats$Treatment <- factor(Timeline.Health.stats$Treatment, levels = c("No Action", "Reference", "Runnel"))
+
+
+Treatment.Model.Health.Graph <- ggplot(Timeline.Health.stats, 
+                                        aes(x = Timeline, y = Count, fill = BaselineCondition)) + 
+  geom_vline(xintercept = 0, colour = "grey", linetype = "dashed",
+             size = 2) + 
+  geom_bar(position = position_dodge(), stat = "identity", 
+           colour = "black", size = 1) +
+  geom_text(aes(label = Count, y = Count + 2.25), 
+            position = position_dodge(0.9), 
+            fontface ="bold", size = 4, colour = "black") +
+  labs(x = "", y = "Count") +
+  scale_x_continuous(limits = c(-10.5, 8.5), breaks = seq(-10, 8, 1)) +
+  scale_fill_manual(values = wes_palette("FantasticFox1", n = 3)) + 
+  theme_bw() +
+  theme(
+    legend.position = c(0.08, 0.90),
+    legend.text = element_text(size = 15),
+    legend.title = element_blank(),
+    legend.background = element_rect(
+      size = 0.5, linetype = "solid", colour = "black"),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title = element_text(size = 20, colour = "black"),
+    axis.text = element_text(size = 20, colour = "black"),
+    strip.text = element_text(size = 16, colour = "black"),
+    strip.background = element_blank(),
+    strip.placement = "outside") +
+  facet_wrap(Metric ~ Treatment,
+             nrow = 3, ncol = 2)
+
+Treatment.Model.Health.Graph
+
+ggsave(Treatment.Model.Health.Graph, height = 9, width = 20, dpi = 300,
+       limitsize = FALSE, units = "in",
+       filename = "D:\\Coastal Habitat Restoration Team\\ACJV Sites - RI_Mass_Maine\\Data Analysis\\Output R Figures\\Final Figures\\Manuscript\\Timeline_Health_Distribution.jpg")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
