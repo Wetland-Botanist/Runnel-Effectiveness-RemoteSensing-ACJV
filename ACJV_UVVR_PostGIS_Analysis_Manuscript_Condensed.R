@@ -500,6 +500,8 @@ Timeline.Tidesheds <- Database %>%
 
 Timeline.Tidesheds$Tideshed_ID <- as.character(Timeline.Tidesheds$Tideshed_ID)
 
+Timeline.Tidesheds$Treatment <- factor(Timeline.Tidesheds$Treatment, 
+                                          levels = c("No Action", "Reference", "Runnel"))
 
 UVVR.Tidesheds <- ggplot() +   
   geom_vline(xintercept = 0, size = 1, colour = "grey", 
@@ -513,8 +515,7 @@ UVVR.Tidesheds <- ggplot() +
                      breaks = seq(-10, 8, 2)) +
   scale_y_continuous(limits = c(0, 1.0),
                      breaks = seq(0, 1.0, 0.25)) +
-  scale_fill_viridis("viridis", discrete = TRUE) + 
-  
+  scale_fill_manual(values = wes_palette("FantasticFox1", type = "discrete", n = 3)) +
   theme_bw() +
   theme(
     legend.position = "none",
@@ -524,13 +525,13 @@ UVVR.Tidesheds <- ggplot() +
     axis.text = element_text(size = 20, colour = "black"),
     strip.text = element_text(size = 16, colour = "black")) +
   facet_wrap_paginate(~Site_Tideshed, scales = "free",
-                      ncol = 4, nrow = 3, page = 3)
+                      ncol = 4, nrow = 3, page = 15)
 
 UVVR.Tidesheds
 
 ggsave(UVVR.Tidesheds, height = 9, width = 16, dpi = 300,
        limitsize = FALSE, units = "in",
-       filename = "Processed_Figures\\Runnel_Tidesheds_page3.jpg")
+       filename = "Processed_Figures\\Runnel_Tidesheds_page15.jpg")
 
 
 
@@ -558,6 +559,9 @@ Timeline.Tidesheds <- Database %>%
 
 Timeline.Tidesheds$Tideshed_ID <- as.character(Timeline.Tidesheds$Tideshed_ID)
 
+Timeline.Tidesheds$Treatment <- factor(Timeline.Tidesheds$Treatment, 
+                                       levels = c("No Action", "Reference", "Runnel"))
+
 
 UVVR.Tidesheds <- ggplot() +   
   geom_vline(xintercept = 0, size = 1, colour = "grey", 
@@ -569,7 +573,7 @@ UVVR.Tidesheds <- ggplot() +
        y = "Average UVVR Score") + 
   scale_x_continuous(limits = c(-10.5, 8.5), 
                      breaks = seq(-10, 8, 2)) +
-  scale_fill_viridis("viridis", discrete = TRUE) + 
+  scale_fill_manual(values = c("#DD8D29", "#46ACC8")) +
   
   theme_bw() +
   theme(
@@ -587,7 +591,7 @@ UVVR.Tidesheds
 
 ggsave(UVVR.Tidesheds, height = 9, width = 16, dpi = 300,
        limitsize = FALSE, units = "in",
-       filename = "Processed_Figures\\Runnel_Tidesheds_page17.jpg")
+       filename = "Processed_Figures\\Runnel_Tidesheds_page16.jpg")
 
 
 
