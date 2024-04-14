@@ -114,6 +114,7 @@ library(splines2)
 library(splines)
 library(afex)
 library(ggeffects)
+library(ggResidpanel)
 
 set.seed(1009)
 
