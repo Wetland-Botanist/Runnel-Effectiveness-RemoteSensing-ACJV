@@ -15,39 +15,16 @@ rm(list = ls())
 #Stats & Data Organization Packages
 library(tidyr)
 library(dplyr)
-library(broom)
-library(purrr)
-library(broom.mixed)
-library(modelr)
-
-#Data Visualization Packages
-library(patchwork)
-library(gridExtra)
-library(drc)
-library(ggfortify)
 library(ggplot2)
-library(viridis)
-library(mgcv)
+library(lubridate)
 library(scales)
-library(ggformula)
-library(wesanderson)
-
-#Data Analysis Packages
-library(lme4)
-library(rstatix)
-library(splines2)
-library(splines)
-library(afex)
-library(ggeffects)
-
-set.seed(1001)
 
 
 # Read in the raw data of the Portland NOAA Tidal Gauge (January 1920 - June 2023)
   # Tidal data was imported into a CSV from the NOAA data inventory on June 14th, 2023 by author
   # Data is in Station Datum
 
-Tides <- read.csv(file = "Raw_Data/Portland_NOAA_TidalGauge_Monthly_Metric.csv")
+Tides <- read.csv(file = "Raw_Data/Portland_NOAA_TidalGauge_Monthly_Metric2.csv")
 
 glimpse(Tides)
 
@@ -84,13 +61,13 @@ Portland_Tidal_Composite <- ggplot() +
              aes(x = Date, y = Tides_Diff),
              size = 2, shape = 19, colour = "darkblue") + 
   labs(x = "",
-       y = "Water Elevation (m)") + 
+       y = "") + 
   scale_x_date(labels = date_format("%Y"), 
-               limits = as.Date(c("1920-01-01", "2025-01-01")),
+               limits = as.Date(c("1950-01-01", "2025-01-01")),
                breaks = ("10 years"),
                expand = c(0,0)) + 
-  scale_y_continuous(limits = c(2.5, 4.5), 
-                     breaks = seq(2.5, 4.5, 0.1)) + 
+  scale_y_continuous(limits = c(-0.4, 3.0), 
+                     breaks = seq(-0.4, 3.0, 0.2)) + 
   theme_bw() +
   theme(
     legend.position = "none",
@@ -107,4 +84,4 @@ Portland_Tidal_Composite
 
 ggsave(Portland_Tidal_Composite, limitsize = FALSE, 
        dpi = 300, height = 7.5, width = 12.5,
-        filename = "Processed_Figures/Portaland_NOAA_MetonicCycle.jpg")
+        filename = "Processed_Figures/Portland_NOAA_MetonicCycle2.jpg")
